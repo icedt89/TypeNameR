@@ -3,13 +3,17 @@ using System.Text;
 
 namespace JanHafner.TypeNameExtractor
 {
-    public class TypeNameExtractor : ITypeNameExtractor
+    public sealed class TypeNameExtractor : ITypeNameExtractor
     {
         private readonly bool outputTypeVariableNames;
 
         public const char GENERIC_TYPE_OPENING_BRACKET = '<';
 
         public const char GENERIC_TYPE_CLOSING_BRACKET = '>';
+
+        public const char GENERIC_TYPE_PARAMETER_COUNT_DELIMITER = '`';
+
+        public const char GENERIC_TYPE_PARAMETER_DELIMITER = ',';
 
         public TypeNameExtractor(bool outputTypeVariableNames = false)
         {
@@ -46,25 +50,27 @@ namespace JanHafner.TypeNameExtractor
 
             typeNameBuilder.Append(typeNameWithoutGenericParameterCount);
 
-            if (type.IsGenericType)
+            if (!type.IsGenericType)
             {
-                typeNameBuilder.Append(TypeNameExtractor.GENERIC_TYPE_OPENING_BRACKET);
-
-                var genericParameters = type.GetGenericArguments();
-                for (var i = 0; i < genericParameters.Length; i++)
-                {
-                    var genericParameter = genericParameters[i];
-
-                    this.ExtractReadableNameCore(genericParameter, typeNameBuilder, i);
-
-                    if (i < genericParameters.Length - 1)
-                    {
-                        typeNameBuilder.Append(',');
-                    }
-                }
-
-                typeNameBuilder.Append(TypeNameExtractor.GENERIC_TYPE_CLOSING_BRACKET);
+                return;
             }
+
+            typeNameBuilder.Append(TypeNameExtractor.GENERIC_TYPE_OPENING_BRACKET);
+
+            var genericParameters = type.GetGenericArguments();
+            for (var i = 0; i < genericParameters.Length; i++)
+            {
+                var genericParameter = genericParameters[i];
+
+                this.ExtractReadableNameCore(genericParameter, typeNameBuilder, i);
+
+                if (i < genericParameters.Length - 1)
+                {
+                    typeNameBuilder.Append(TypeNameExtractor.GENERIC_TYPE_PARAMETER_DELIMITER);
+                }
+            }
+
+            typeNameBuilder.Append(TypeNameExtractor.GENERIC_TYPE_CLOSING_BRACKET);
         }
 
         /// <summary>
@@ -78,7 +84,7 @@ namespace JanHafner.TypeNameExtractor
                 throw new ArgumentException($"'{nameof(typeName)}' cannot be null or whitespace.", nameof(typeName));
             }
 
-            var lastIndexOfGenericParamterDelimiter = typeName.LastIndexOf('`');
+            var lastIndexOfGenericParamterDelimiter = typeName.LastIndexOf(TypeNameExtractor.GENERIC_TYPE_PARAMETER_COUNT_DELIMITER);
             if (lastIndexOfGenericParamterDelimiter > 0)
             {
                 return typeName.Substring(0, lastIndexOfGenericParamterDelimiter);
