@@ -1,21 +1,10 @@
 ﻿using FluentAssertions;
-using System;
 using Xunit;
 
 namespace JanHafner.TypeNameExtractor.Tests.TypeHelperTests;
 
 public sealed class RemoveGenericParametersCount
 {
-    [Theory]
-    [InlineData("")]
-    [InlineData((string?)null)]
-    [InlineData("  ")]
-    public void ThrowsArgumentExceptionIfTheSuppliedTypeNameIsNullOrWhiteSpace(string? typeName)
-    {
-        // Act, Assert
-        Assert.Throws<ArgumentException>(() => TypeHelper.RemoveGenericParametersCount(typeName!));
-    }
-
     [Fact]
     public void ReturnsTheTypeNameIfNoDelimiterIsPresent()
     {
@@ -23,10 +12,10 @@ public sealed class RemoveGenericParametersCount
         const string typeName = "TestClass";
 
         // Act
-        var resultingTypeName = TypeHelper.RemoveGenericParametersCount(typeName);
+        var resultingTypeName = TypeHelper.RemoveGenericParametersCount(typeName, Constants.GenericParameterCountDelimiter);
 
         // Assert
-        resultingTypeName.Should().Be(typeName);
+        resultingTypeName.ToString().Should().Be(typeName);
     }
 
     [Fact]
@@ -36,9 +25,9 @@ public sealed class RemoveGenericParametersCount
         const string typeName = "TestClass`2";
 
         // Act
-        var resultingTypeName = TypeHelper.RemoveGenericParametersCount(typeName);
+        var resultingTypeName = TypeHelper.RemoveGenericParametersCount(typeName, Constants.GenericParameterCountDelimiter);
 
         // Assert
-        resultingTypeName.Should().Be("TestClass");
+        resultingTypeName.ToString().Should().Be("TestClass");
     }
 }

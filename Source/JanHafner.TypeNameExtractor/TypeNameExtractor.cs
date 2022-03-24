@@ -50,10 +50,10 @@ public sealed class TypeNameExtractor : ITypeNameExtractor
             {
                 var arrayRank = type.GetArrayRank();
 
-                arrayRankPart = new string(',', arrayRank - 1);
+                arrayRankPart = new string(Constants.ArrayRankDelimiter, arrayRank - 1);
             }
 
-            arrayTypeNameBuilder.AppendFormat("{0}{1}{2}", this.typeNameExtractorOptions.ArrayOpeningBracket, arrayRankPart, this.typeNameExtractorOptions.ArrayClosingBracket);
+            arrayTypeNameBuilder.AppendJoin(null, Constants.ArrayOpeningBracket, arrayRankPart, Constants.ArrayClosingBracket);
 
             typeNameBuilder.Append(arrayTypeNameBuilder);
 
@@ -68,7 +68,7 @@ public sealed class TypeNameExtractor : ITypeNameExtractor
             var nullableTypeNameBuilder = new StringBuilder();
 
             this.ExtractReadableNameCore(nullableType, nullableTypeNameBuilder, false, visitedTypes);
-            nullableTypeNameBuilder.Append(this.typeNameExtractorOptions.NullableTypeMarker);
+            nullableTypeNameBuilder.Append(Constants.NullableTypeMarker);
 
             typeNameBuilder.Append(nullableTypeNameBuilder);
 
@@ -77,19 +77,19 @@ public sealed class TypeNameExtractor : ITypeNameExtractor
             return;
         }
 
-        var typeName = isInNestedContext && type.DeclaringType is null && this.typeNameExtractorOptions.FullQualifyOuterMostTypeNameOnNestedTypes ? type.FullName! : type.Name;
-        typeName = TypeHelper.RemoveGenericParametersCount(typeName, this.typeNameExtractorOptions.GenericParameterCountDelimiter);
+        ReadOnlySpan<char> typeName = isInNestedContext && type.DeclaringType is null && this.typeNameExtractorOptions.FullQualifyOuterMostTypeNameOnNestedTypes ? type.FullName! : type.Name;
+        typeName = TypeHelper.RemoveGenericParametersCount(typeName, Constants.GenericParameterCountDelimiter);
         if (this.typeNameExtractorOptions.PredefinedTypeNames.TryGetValue(type, out var primitiveTypeName) && !this.typeNameExtractorOptions.UseClrTypeNameForPrimitiveTypes)
         {
             typeName = primitiveTypeName;
         }
 
-        var innerTypeNameBuilder = new StringBuilder(typeName);
+        var innerTypeNameBuilder = new StringBuilder(typeName.Length).Append(typeName);
 
         var genericArguments = type.GetGenericArguments();
         if(genericArguments.Length > 0)
         {
-            innerTypeNameBuilder.Append(this.typeNameExtractorOptions.GenericTypeOpeningBracket);
+            innerTypeNameBuilder.Append(Constants.GenericTypeOpeningBracket);
 
             for (int i = 0; i < genericArguments.Length; i++)
             {
@@ -116,11 +116,11 @@ public sealed class TypeNameExtractor : ITypeNameExtractor
 
                 if(isNotLastParameter)
                 {
-                    innerTypeNameBuilder.Append(this.typeNameExtractorOptions.GenericParameterDelimiter);
+                    innerTypeNameBuilder.Append(Constants.GenericParameterDelimiter);
                 }
             }
 
-            innerTypeNameBuilder.Append(this.typeNameExtractorOptions.GenericTypeClosingBracket);
+            innerTypeNameBuilder.Append(Constants.GenericTypeClosingBracket);
         }
 
         if (type.IsNested && !type.IsGenericParameter && type.DeclaringType != null)
@@ -129,7 +129,7 @@ public sealed class TypeNameExtractor : ITypeNameExtractor
 
             this.ExtractReadableNameCore(type.DeclaringType, nestedTypeNameBuilder, true, visitedTypes);
 
-            typeNameBuilder.AppendFormat("{0}{1}{2}", nestedTypeNameBuilder, this.typeNameExtractorOptions.NestedTypeDelimiter, innerTypeNameBuilder);
+            typeNameBuilder.AppendJoin(null, nestedTypeNameBuilder, Constants.NestedTypeDelimiter, innerTypeNameBuilder);
         }
         else
         {
