@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace JanHafner.TypeNameExtractor
+namespace JanHafner.TypeNameExtractor;
+
+public interface ITypeNameExtractor
 {
-    public interface ITypeNameExtractor
-    {
-        string ExtractReadableName(Type type);
-    }
+    string ExtractReadableName(Type type);
 }

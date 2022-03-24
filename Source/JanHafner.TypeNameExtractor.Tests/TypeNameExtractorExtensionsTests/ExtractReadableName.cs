@@ -2,31 +2,30 @@
 using System;
 using Xunit;
 
-namespace JanHafner.TypeNameExtractor.Tests.TypeNameExtractorExtensionsTests
+namespace JanHafner.TypeNameExtractor.Tests.TypeNameExtractorExtensionsTests;
+
+public sealed class ExtractReadableName
 {
-    public sealed class ExtractReadableName
+    [Fact]
+    public void CallsTheTypeNameExtractorWithTheSuppliedType()
     {
-        [Fact]
-        public void CallsTheTypeNameExtractorWithTheSuppliedType()
-        {
-            // Arrange
-            var typeNameExtractorMock = new Mock<ITypeNameExtractor>();
+        // Arrange
+        var typeNameExtractorMock = new Mock<ITypeNameExtractor>();
 
-            // Act
-            var typeName = typeNameExtractorMock.Object.ExtractReadableName<GenericTestClass<TestClass, TestClass>>();
+        // Act
+        typeNameExtractorMock.Object.ExtractReadableName<GenericTestClass<TestClass>>();
 
-            // Assert
-            typeNameExtractorMock.Verify(tne => tne.ExtractReadableName(typeof(GenericTestClass<TestClass, TestClass>)), Times.Once);
-        }
+        // Assert
+        typeNameExtractorMock.Verify(tne => tne.ExtractReadableName(typeof(GenericTestClass<TestClass>)), Times.Once);
+    }
 
-        [Fact]
-        public void ThrowsExceptionIfTypeNameExtractorIsNull()
-        {
-            // Arrange
-            ITypeNameExtractor readableTypeNameExtractor = null;
+    [Fact]
+    public void ThrowsExceptionIfTypeNameExtractorIsNull()
+    {
+        // Arrange
+        ITypeNameExtractor? readableTypeNameExtractor = null;
 
-            // Act, Assert
-            Assert.Throws<ArgumentNullException>(() => readableTypeNameExtractor.ExtractReadableName<GenericTestClass<TestClass, TestClass>>());
-        }
+        // Act, Assert
+        Assert.Throws<ArgumentNullException>(() => readableTypeNameExtractor!.ExtractReadableName<GenericTestClass<TestClass>>());
     }
 }

@@ -1,96 +1,141 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
-namespace JanHafner.TypeNameExtractor
+namespace JanHafner.TypeNameExtractor;
+
+public sealed class TypeNameExtractor : ITypeNameExtractor
 {
-    public sealed class TypeNameExtractor : ITypeNameExtractor
+    private readonly TypeNameExtractorOptions typeNameExtractorOptions;
+
+    public TypeNameExtractor(TypeNameExtractorOptions? typeNameExtractorOptions = null)
     {
-        private readonly bool outputTypeVariableNames;
+        this.typeNameExtractorOptions = typeNameExtractorOptions ?? new TypeNameExtractorOptions();
+    }
 
-        public const char GENERIC_TYPE_OPENING_BRACKET = '<';
-
-        public const char GENERIC_TYPE_CLOSING_BRACKET = '>';
-
-        public const char GENERIC_TYPE_PARAMETER_COUNT_DELIMITER = '`';
-
-        public const char GENERIC_TYPE_PARAMETER_DELIMITER = ',';
-
-        public TypeNameExtractor(bool outputTypeVariableNames = false)
+    public string ExtractReadableName(Type type)
+    {
+        if (type is null)
         {
-            this.outputTypeVariableNames = outputTypeVariableNames;
+            throw new ArgumentNullException(nameof(type));
         }
 
-        public string ExtractReadableName(Type type)
+        var typeNameBuilder = new StringBuilder();
+        var visitedTypes = new Dictionary<Type, StringBuilder>();
+
+        this.ExtractReadableNameCore(type, typeNameBuilder, false, visitedTypes);
+
+        return typeNameBuilder.ToString();
+    }
+
+    private void ExtractReadableNameCore(Type type, StringBuilder typeNameBuilder, bool isInNestedContext, IDictionary<Type, StringBuilder> visitedTypes)
+    {
+        if (visitedTypes.TryGetValue(type, out var name))
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+            typeNameBuilder.Append(name);
 
-            var typeNameBuilder = new StringBuilder();
-
-            this.ExtractReadableNameCore(type, typeNameBuilder, 0);
-
-            return typeNameBuilder.ToString();
+            return;
         }
 
-        private void ExtractReadableNameCore(Type type, StringBuilder typeNameBuilder, int genericParameterIndex)
+        if (type.IsArray)
         {
-            if (type.IsGenericParameter && !this.outputTypeVariableNames)
+            var elementType = type.GetElementType();
+
+            var arrayTypeNameBuilder = new StringBuilder();
+
+            this.ExtractReadableNameCore(elementType!, arrayTypeNameBuilder, false, visitedTypes);
+
+            string? arrayRankPart = null;
+            if (type.IsVariableBoundArray)
             {
-                // Skip parameters of open generic types to prevent output of their names e.g. 'T' in TestClass<T>
-                return;
+                var arrayRank = type.GetArrayRank();
+
+                arrayRankPart = new string(',', arrayRank - 1);
             }
 
-            var typeNameWithoutGenericParameterCount = RemoveGenericParametersCount(type.Name);
-            if (genericParameterIndex > 0)
+            arrayTypeNameBuilder.AppendFormat("{0}{1}{2}", this.typeNameExtractorOptions.ArrayOpeningBracket, arrayRankPart, this.typeNameExtractorOptions.ArrayClosingBracket);
+
+            typeNameBuilder.Append(arrayTypeNameBuilder);
+
+            visitedTypes[type] = arrayTypeNameBuilder;
+
+            return;
+        }
+
+        var nullableType = Nullable.GetUnderlyingType(type);
+        if (nullableType != null && this.typeNameExtractorOptions.UseNullableTypeShortForm)
+        {
+            var nullableTypeNameBuilder = new StringBuilder();
+
+            this.ExtractReadableNameCore(nullableType, nullableTypeNameBuilder, false, visitedTypes);
+            nullableTypeNameBuilder.Append(this.typeNameExtractorOptions.NullableTypeMarker);
+
+            typeNameBuilder.Append(nullableTypeNameBuilder);
+
+            visitedTypes[type] = nullableTypeNameBuilder;
+
+            return;
+        }
+
+        var typeName = isInNestedContext && type.DeclaringType is null && this.typeNameExtractorOptions.FullQualifyOuterMostTypeNameOnNestedTypes ? type.FullName! : type.Name;
+        typeName = TypeHelper.RemoveGenericParametersCount(typeName, this.typeNameExtractorOptions.GenericParameterCountDelimiter);
+        if (this.typeNameExtractorOptions.PredefinedTypeNames.TryGetValue(type, out var primitiveTypeName) && !this.typeNameExtractorOptions.UseClrTypeNameForPrimitiveTypes)
+        {
+            typeName = primitiveTypeName;
+        }
+
+        var innerTypeNameBuilder = new StringBuilder(typeName);
+
+        var genericArguments = type.GetGenericArguments();
+        if(genericArguments.Length > 0)
+        {
+            innerTypeNameBuilder.Append(this.typeNameExtractorOptions.GenericTypeOpeningBracket);
+
+            for (int i = 0; i < genericArguments.Length; i++)
             {
-                typeNameBuilder.Append(' ');
-            }
+                var genericArgument = genericArguments[i];
 
-            typeNameBuilder.Append(typeNameWithoutGenericParameterCount);
+                var isNotLastParameter = i < genericArguments.Length - 1;
+                var isNotFirstParameter = i > 0;
 
-            if (!type.IsGenericType)
-            {
-                return;
-            }
-
-            typeNameBuilder.Append(TypeNameExtractor.GENERIC_TYPE_OPENING_BRACKET);
-
-            var genericParameters = type.GetGenericArguments();
-            for (var i = 0; i < genericParameters.Length; i++)
-            {
-                var genericParameter = genericParameters[i];
-
-                this.ExtractReadableNameCore(genericParameter, typeNameBuilder, i);
-
-                if (i < genericParameters.Length - 1)
+                if (!genericArgument.IsGenericParameter || this.typeNameExtractorOptions.OutputTypeVariableNames)
                 {
-                    typeNameBuilder.Append(TypeNameExtractor.GENERIC_TYPE_PARAMETER_DELIMITER);
+                    if (isNotFirstParameter)
+                    {
+                        innerTypeNameBuilder.Append(' ');
+                    }
+                    
+                    var genericArgumentTypeNameBuilder = new StringBuilder();
+
+                    this.ExtractReadableNameCore(genericArgument, genericArgumentTypeNameBuilder, false, visitedTypes);
+
+                    visitedTypes[genericArgument] = genericArgumentTypeNameBuilder;
+
+                    innerTypeNameBuilder.Append(genericArgumentTypeNameBuilder);
+                }
+
+                if(isNotLastParameter)
+                {
+                    innerTypeNameBuilder.Append(this.typeNameExtractorOptions.GenericParameterDelimiter);
                 }
             }
 
-            typeNameBuilder.Append(TypeNameExtractor.GENERIC_TYPE_CLOSING_BRACKET);
+            innerTypeNameBuilder.Append(this.typeNameExtractorOptions.GenericTypeClosingBracket);
         }
 
-        /// <summary>
-        /// Removes the "generic arguments count"-delimiter from the type name.
-        /// E.g. TestClass`1 becomes TestClass, or TestClass`22 becomes TestClass.
-        /// </summary>
-        public static string RemoveGenericParametersCount(string typeName)
+        if (type.IsNested && !type.IsGenericParameter && type.DeclaringType != null)
         {
-            if (string.IsNullOrWhiteSpace(typeName))
-            {
-                throw new ArgumentException($"'{nameof(typeName)}' cannot be null or whitespace.", nameof(typeName));
-            }
+            var nestedTypeNameBuilder = new StringBuilder();
 
-            var lastIndexOfGenericParamterDelimiter = typeName.LastIndexOf(TypeNameExtractor.GENERIC_TYPE_PARAMETER_COUNT_DELIMITER);
-            if (lastIndexOfGenericParamterDelimiter > 0)
-            {
-                return typeName.Substring(0, lastIndexOfGenericParamterDelimiter);
-            }
+            this.ExtractReadableNameCore(type.DeclaringType, nestedTypeNameBuilder, true, visitedTypes);
 
-            return typeName;
+            typeNameBuilder.AppendFormat("{0}{1}{2}", nestedTypeNameBuilder, this.typeNameExtractorOptions.NestedTypeDelimiter, innerTypeNameBuilder);
         }
-    }
+        else
+        {
+            typeNameBuilder.Append(innerTypeNameBuilder);
+        }
+
+        visitedTypes[type] = innerTypeNameBuilder;
+    }      
 }

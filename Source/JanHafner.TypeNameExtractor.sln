@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31410.357
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32319.34
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JanHafner.TypeNameExtractor", "JanHafner.TypeNameExtractor\JanHafner.TypeNameExtractor.csproj", "{21D7806A-5FF8-41A7-895B-8A024BE7814B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JanHafner.TypeNameExtractor", "JanHafner.TypeNameExtractor\JanHafner.TypeNameExtractor.csproj", "{21D7806A-5FF8-41A7-895B-8A024BE7814B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JanHafner.TypeNameExtractor.Tests", "JanHafner.TypeNameExtractor.Tests\JanHafner.TypeNameExtractor.Tests.csproj", "{9BCEB41A-61EF-4E50-9734-7B4B4C19DC3C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JanHafner.TypeNameExtractor.Tests", "JanHafner.TypeNameExtractor.Tests\JanHafner.TypeNameExtractor.Tests.csproj", "{9BCEB41A-61EF-4E50-9734-7B4B4C19DC3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
