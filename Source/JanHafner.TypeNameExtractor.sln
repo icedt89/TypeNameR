@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JanHafner.TypeNameExtractor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JanHafner.TypeNameExtractor.Tests", "JanHafner.TypeNameExtractor.Tests\JanHafner.TypeNameExtractor.Tests.csproj", "{9BCEB41A-61EF-4E50-9734-7B4B4C19DC3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JanHafner.TypeNameExtractor.Benchmark", "JanHafner.TypeNameExtractor.Benchmark\JanHafner.TypeNameExtractor.Benchmark.csproj", "{4DACCEC4-4924-4EB8-87B3-4212EAD6A9F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JanHafner.TypeNameExtractor.Benchmark", "JanHafner.TypeNameExtractor.Benchmark\JanHafner.TypeNameExtractor.Benchmark.csproj", "{4DACCEC4-4924-4EB8-87B3-4212EAD6A9F2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Extensions.TypeNameExtractor", "Serilog.Extensions.TypeNameExtractor\Serilog.Extensions.TypeNameExtractor.csproj", "{A8F72112-6C0B-4BEA-AEB7-B960E54D248C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{4DACCEC4-4924-4EB8-87B3-4212EAD6A9F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DACCEC4-4924-4EB8-87B3-4212EAD6A9F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DACCEC4-4924-4EB8-87B3-4212EAD6A9F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8F72112-6C0B-4BEA-AEB7-B960E54D248C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8F72112-6C0B-4BEA-AEB7-B960E54D248C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8F72112-6C0B-4BEA-AEB7-B960E54D248C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8F72112-6C0B-4BEA-AEB7-B960E54D248C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

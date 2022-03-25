@@ -1,19 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 
 namespace JanHafner.TypeNameExtractor;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 public sealed class TypeNameExtractor : ITypeNameExtractor
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 {
     private readonly TypeNameExtractorOptions typeNameExtractorOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TypeNameExtractor"/> class with the supplied <see cref="TypeNameExtractorOptions"/>.
+    /// </summary>
+    /// <param name="typeNameExtractorOptions">If set to <c>null</c>, a new instance initialized with the default values will be used internally.</param>
     public TypeNameExtractor(TypeNameExtractorOptions? typeNameExtractorOptions = null)
     {
         this.typeNameExtractorOptions = typeNameExtractorOptions ?? new TypeNameExtractorOptions();
     }
 
-    public string ExtractReadableName(Type type)
+    /// <inheritdoc />
+    public HumanReadableTypeName ExtractReadableName(Type type)
     {
         if (type is null)
         {
@@ -25,7 +30,7 @@ public sealed class TypeNameExtractor : ITypeNameExtractor
 
         this.ExtractReadableNameCore(type, typeNameBuilder, false, visitedTypes);
 
-        return typeNameBuilder.ToString();
+        return new HumanReadableTypeName(type, typeNameBuilder);
     }
 
     private void ExtractReadableNameCore(Type type, StringBuilder typeNameBuilder, bool isInNestedContext, IDictionary<Type, StringBuilder> visitedTypes)
@@ -63,7 +68,7 @@ public sealed class TypeNameExtractor : ITypeNameExtractor
         }
 
         var nullableType = Nullable.GetUnderlyingType(type);
-        if (nullableType != null && this.typeNameExtractorOptions.UseNullableTypeShortForm)
+        if (nullableType is not null && this.typeNameExtractorOptions.UseNullableTypeShortForm)
         {
             var nullableTypeNameBuilder = new StringBuilder();
 
@@ -79,7 +84,7 @@ public sealed class TypeNameExtractor : ITypeNameExtractor
 
         ReadOnlySpan<char> typeName = isInNestedContext && type.DeclaringType is null && this.typeNameExtractorOptions.FullQualifyOuterMostTypeNameOnNestedTypes ? type.FullName! : type.Name;
         typeName = TypeHelper.RemoveGenericParametersCount(typeName, Constants.GenericParameterCountDelimiter);
-        if (this.typeNameExtractorOptions.PredefinedTypeNames.TryGetValue(type, out var primitiveTypeName) && !this.typeNameExtractorOptions.UseClrTypeNameForPrimitiveTypes)
+        if (this.typeNameExtractorOptions.PrimitiveTypeNames.TryGetValue(type, out var primitiveTypeName) && !this.typeNameExtractorOptions.UseClrTypeNameForPrimitiveTypes)
         {
             typeName = primitiveTypeName;
         }
@@ -123,7 +128,7 @@ public sealed class TypeNameExtractor : ITypeNameExtractor
             innerTypeNameBuilder.Append(Constants.GenericTypeClosingBracket);
         }
 
-        if (type.IsNested && !type.IsGenericParameter && type.DeclaringType != null)
+        if (type.IsNested && !type.IsGenericParameter && type.DeclaringType is not null)
         {
             var nestedTypeNameBuilder = new StringBuilder();
 

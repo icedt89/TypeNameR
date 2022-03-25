@@ -1,6 +1,4 @@
 ﻿using FluentAssertions;
-using System;
-using System.Collections.Generic;
 using Xunit;
 
 namespace JanHafner.TypeNameExtractor.Tests.TypeNameExtractorTests;
@@ -127,6 +125,7 @@ public sealed class ExtractReadableName
         var readableName = typeNameExtractor.ExtractReadableName(type);
 
         // Assert
-        readableName.Should().Be(expected);
+        readableName.Type.Should().Be(type);
+        readableName.Name.Should().Be(expected);
     }
 }
