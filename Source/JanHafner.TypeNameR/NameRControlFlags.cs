@@ -79,6 +79,11 @@ public enum NameRControlFlags
     IncludeThisKeywordForExtensions = 4096,
 
     /// <summary>
+    /// Exclude namespaces of stackframes defined in <see cref="TypeNameROptions.ExcludedNamespaces"/>.
+    /// </summary>
+    ExcludeStackFrameMethodsByNamespace = 8192,
+
+    /// <summary>
     /// Shortcut for all flags.
     /// </summary>
     All = IncludeAccessModifier
@@ -93,5 +98,6 @@ public enum NameRControlFlags
         | IncludeSourceInformation
         | IncludeInnerExceptions
         | StoreOriginalStackTraceInExceptionData
-        | IncludeThisKeywordForExtensions,
+        | IncludeThisKeywordForExtensions
+        | ExcludeStackFrameMethodsByNamespace,
 }

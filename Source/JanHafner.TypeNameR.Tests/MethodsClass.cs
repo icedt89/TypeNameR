@@ -2,6 +2,16 @@
 
 public sealed class MethodsClass
 {
+    static MethodsClass()
+    {
+        throw new NotImplementedException();
+    }
+
+    public MethodsClass()
+    {
+        throw new NotImplementedException();
+    }
+
     public static void StaticMethod()
     {
         throw new NotImplementedException();

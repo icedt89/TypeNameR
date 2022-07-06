@@ -71,7 +71,7 @@ public sealed class TypeNameR : ITypeNameR
 
         this.ProcessNested(stringBuilder, type);
 
-        ProcessTypeName(stringBuilder, type, isInNestedContext);
+        TypeNameR.ProcessTypeName(stringBuilder, type, isInNestedContext);
 
         this.ProcessGenerics(stringBuilder, type.GetGenericArguments(), nullabilityInfo?.GenericTypeArguments);
     }
@@ -87,7 +87,7 @@ public sealed class TypeNameR : ITypeNameR
 
     private bool TryProcessPredefinedType(StringBuilder stringBuilder, Type type)
     {
-        if (!typeNameROptions.PredefinedTypeNames.TryGetValue(type, out var readablePrimitiveTypeName1))
+        if (!this.typeNameROptions.PredefinedTypeNames.TryGetValue(type, out var readablePrimitiveTypeName1))
         {
             return false;
         }
@@ -229,7 +229,7 @@ public sealed class TypeNameR : ITypeNameR
 
         var stringBuilder = new StringBuilder();
 
-        ProcessMethod(stringBuilder, methodBase, StateMachineTypes.None, nameRControlFlags);
+        this.ProcessMethod(stringBuilder, methodBase, StateMachineTypes.None, nameRControlFlags);
 
         return stringBuilder.ToString();
     }
@@ -251,7 +251,7 @@ public sealed class TypeNameR : ITypeNameR
 
     private void ProcessMethod(StringBuilder stringBuilder, MethodBase methodBase, StateMachineTypes stateMachineType, NameRControlFlags nameRControlFlags)
     {
-        ProcessMethodModifier(stringBuilder, methodBase, stateMachineType, nameRControlFlags);
+        TypeNameR.ProcessMethodModifier(stringBuilder, methodBase, stateMachineType, nameRControlFlags);
 
         // Otherwise it is a constructor
         var asMethodInfo = methodBase as MethodInfo;
@@ -276,6 +276,10 @@ public sealed class TypeNameR : ITypeNameR
         {
             stringBuilder.Append(methodBase.Name);
         }
+        else if(methodBase.IsStatic)
+        {
+            stringBuilder.Append(Symbol.StaticConstructor);
+        }
         else
         {
             stringBuilder.Append(Symbol.Constructor);
@@ -283,7 +287,7 @@ public sealed class TypeNameR : ITypeNameR
 
         if (asMethodInfo is not null)
         {
-            ProcessGenerics(stringBuilder, methodBase.GetGenericArguments(), null);
+            this.ProcessGenerics(stringBuilder, methodBase.GetGenericArguments(), null);
         }
 
         stringBuilder.Append(Symbol.LeftParenthesis);
@@ -350,7 +354,7 @@ public sealed class TypeNameR : ITypeNameR
 
         var nullabilityInfo = parameterInfo.GetNullabilityInfo();
 
-        ProcessTypeCore(stringBuilder, parameterInfo.ParameterType, false, nullabilityInfo);
+        this.ProcessTypeCore(stringBuilder, parameterInfo.ParameterType, false, nullabilityInfo);
 
         if (parameterInfo.Position == -1)
         {
@@ -362,7 +366,7 @@ public sealed class TypeNameR : ITypeNameR
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeParameterDefaultValue))
         {
-            ProcessParameterSuffix(stringBuilder, parameterInfo);
+            TypeNameR.ProcessParameterSuffix(stringBuilder, parameterInfo);
         }
     }
 
@@ -416,7 +420,7 @@ public sealed class TypeNameR : ITypeNameR
         }
 
         stringBuilder.Append(Symbol.EqualsSignWithEndingSpace)
-                     .Append(parameterInfo.DefaultValue.ToString());
+                     .Append(parameterInfo.DefaultValue);
     }
 
     #endregion
@@ -448,7 +452,7 @@ public sealed class TypeNameR : ITypeNameR
 
         var stringBuilder = new StringBuilder();
 
-        if (this.ProcessStackFrame(stringBuilder, stackFrame, stackFrame.GetMethod(), DefaultCallDepth, nameRControlFlags))
+        if (this.ProcessStackFrame(stringBuilder, stackFrame, stackFrame.GetMethod(), TypeNameR.DefaultCallDepth, nameRControlFlags))
         {
             throw new InvalidOperationException("Unable to process stack frame");
         }
@@ -474,14 +478,10 @@ public sealed class TypeNameR : ITypeNameR
     {
         if (methodBase is null)
         {
-#if DEBUG
-            Debug.Assert(true);
-
-#endif
             return false;
         }
 
-        if (!nameRControlFlags.HasFlag(NameRControlFlags.IncludeHiddenStackFrames) && methodBase.IsHidden())
+        if (this.SkipStackFrame(nameRControlFlags, methodBase))
         {
             return false;
         }
@@ -524,6 +524,13 @@ public sealed class TypeNameR : ITypeNameR
         }
 
         return true;
+    }
+
+    private bool SkipStackFrame(NameRControlFlags nameRControlFlags, MethodBase methodBase)
+    {
+        return !nameRControlFlags.HasFlag(NameRControlFlags.IncludeHiddenStackFrames) && (methodBase.IsHidden() || methodBase.IsValueTaskSource()
+                                                                                 || (nameRControlFlags.HasFlag(NameRControlFlags.ExcludeStackFrameMethodsByNamespace)
+                                                                                  && this.typeNameROptions.ExcludedNamespaces.IsNamespaceExcluded(methodBase)));
     }
 
     #endregion

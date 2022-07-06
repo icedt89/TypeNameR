@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Threading.Tasks.Sources;
@@ -29,19 +30,34 @@ internal static class StackTraceHelper
             return true;
         }
 
-        if (methodBase.IsValueTaskSource())
+        return false;
+    }
+
+    public static bool IsNamespaceExcluded(this IEnumerable<string> source, MethodBase methodBase)
+    {
+        var @namespace = methodBase.DeclaringType?.Namespace;
+        if(@namespace is null)
         {
-            return true;
+            return false;
+        }
+        
+        foreach (var item in source)
+        {
+            if (@namespace.StartsWith(item, StringComparison.Ordinal))
+            {
+                return true;
+            }
         }
 
         return false;
     }
 
-    private static bool IsValueTaskSource(this MethodBase methodBase)
+    public static bool IsValueTaskSource(this MethodBase methodBase)
     {
         var iValueTaskSourceType = typeof(IValueTaskSource);
 
-        return methodBase.Name.StartsWith(iValueTaskSourceType.Namespace!) && methodBase.Name.EndsWith(nameof(IValueTaskSource.GetResult));
+        return methodBase.Name.StartsWith(iValueTaskSourceType.Namespace!, StringComparison.Ordinal)
+            && methodBase.Name.EndsWith(nameof(IValueTaskSource.GetResult), StringComparison.Ordinal);
     }
 
     public static (StackFrame StackFrame, MethodBase Method, uint CallDepth)[] EliminateRecursion(this System.Diagnostics.StackTrace stackTrace)
@@ -52,20 +68,12 @@ internal static class StackTraceHelper
             var stackFrame = stackTrace.GetFrame(frameIndex);
             if (stackFrame is null)
             {
-#if DEBUG
-                Debug.Assert(true);
-
-#endif
                 continue;
             }
 
             var stackFrameMethod = stackFrame.GetMethod();
             if (stackFrameMethod is null)
             {
-#if DEBUG
-                Debug.Assert(true);
-
-#endif
                 continue;
             }
 

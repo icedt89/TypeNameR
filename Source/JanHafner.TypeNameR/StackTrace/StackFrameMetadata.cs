@@ -15,9 +15,9 @@ public readonly struct StackFrameMetadata : IEquatable<StackFrameMetadata>
             throw new ArgumentException($"'{nameof(fileName)}' cannot be null or whitespace.", nameof(fileName));
         }
 
-        FileName = fileName;
-        LineNumber = lineNumber;
-        ColumnNumber = columnNumber;
+        this.FileName = fileName;
+        this.LineNumber = lineNumber;
+        this.ColumnNumber = columnNumber;
     }
 
     /// <summary>
@@ -44,7 +44,7 @@ public readonly struct StackFrameMetadata : IEquatable<StackFrameMetadata>
     /// <inheritdoc/>
     public bool Equals(StackFrameMetadata other)
     {
-        return this.FileName == other.FileName &&
+        return string.Equals(this.FileName, other.FileName, StringComparison.OrdinalIgnoreCase) &&
                this.LineNumber == other.LineNumber &&
                this.ColumnNumber == other.ColumnNumber;
     }

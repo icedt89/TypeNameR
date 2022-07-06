@@ -6,9 +6,9 @@
 public sealed class TypeNameROptions
 {
     /// <summary>
-    /// The default value used to configure <see cref="PredefinedTypeNames"/>.
+    /// Defines the names used for predefined types.
     /// </summary>
-    public static readonly IReadOnlyDictionary<Type, string> DefaultPredefinedTypeNames = new Dictionary<Type, string>
+    public IReadOnlyDictionary<Type, string> PredefinedTypeNames { get; set; } = new Dictionary<Type, string>(16)
     {
         { typeof(string), "string" },
         { typeof(object), "object" },
@@ -29,7 +29,10 @@ public sealed class TypeNameROptions
     };
 
     /// <summary>
-    /// Defines the names used for primitive types.
+    /// Namespaces starting with values defined in this list are excluded from stacktraces, if enabled via <see cref="NameRControlFlags.ExcludeStackFrameMethodsByNamespace"/>.
     /// </summary>
-    public IReadOnlyDictionary<Type, string> PredefinedTypeNames { get; set; } = DefaultPredefinedTypeNames;
+    public IEnumerable<string> ExcludedNamespaces { get; set; } = new string[]
+    {
+        "System."
+    };
 }

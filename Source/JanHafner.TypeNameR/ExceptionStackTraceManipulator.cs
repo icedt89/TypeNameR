@@ -29,6 +29,11 @@ public static class ExceptionStackTraceManipulator
             throw new ArgumentNullException(nameof(exception));
         }
 
+        return exception.GetOriginalStackTraceOrNullCore();
+    }
+
+    private static string? GetOriginalStackTraceOrNullCore(this Exception exception)
+    {
         if (!exception.Data.Contains(ExceptionStackTraceManipulator.OriginalStackTraceKey))
         {
             return null;
@@ -51,13 +56,13 @@ public static class ExceptionStackTraceManipulator
             throw new ArgumentNullException(nameof(exception));
         }
 
-        var originalStackTrace = exception.GetOriginalStackTraceOrNull();
+        var originalStackTrace = exception.GetOriginalStackTraceOrNullCore();
         if (originalStackTrace is null)
         {
             return false;
         }
 
-        exception.SetStackTrace(new StringBuilder(originalStackTrace, originalStackTrace.Length));
+        exception.SetStackTraceCore(new StringBuilder(originalStackTrace, originalStackTrace.Length), true);
 
         if (removeStoredOriginalStackTrace)
         {
@@ -81,6 +86,11 @@ public static class ExceptionStackTraceManipulator
             throw new ArgumentNullException(nameof(exception));
         }
 
+        exception.SetStackTraceCore(stackTrace, storeOriginalStackTrace);
+    }
+
+    private static void SetStackTraceCore(this Exception exception, StringBuilder stackTrace, bool storeOriginalStackTrace)
+    {
         if (storeOriginalStackTrace)
         {
             exception.Data[ExceptionStackTraceManipulator.OriginalStackTraceKey] = exception.StackTrace;

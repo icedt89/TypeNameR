@@ -5,12 +5,12 @@ namespace JanHafner.TypeNameR;
 
 internal static class StateMachineHelper
 {
-    public static StateMachineTypes ResolveRealMethodFromStateMachine(this MethodInfo methodBase, out MethodInfo? realMethodInfo)
+    public static StateMachineTypes ResolveRealMethodFromStateMachine(this MethodInfo methodInfo, out MethodInfo? realMethodInfo)
     {
         realMethodInfo = null;
 
         // It is assumed that any state machine is nested inside the type which uses it
-        var generatedType = methodBase.DeclaringType;
+        var generatedType = methodInfo.DeclaringType;
         if (generatedType is null)
         {
             return StateMachineTypes.None;

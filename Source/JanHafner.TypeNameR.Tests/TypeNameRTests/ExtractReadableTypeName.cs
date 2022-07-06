@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Xunit;
 
-namespace JanHafner.TypeNameR.Tests.TypeNameR;
+namespace JanHafner.TypeNameR.Tests.TypeNameRTests;
 
 public sealed class ExtractReadableTypeName
 {
@@ -68,7 +68,7 @@ public sealed class ExtractReadableTypeName
     public void ExtractReadableName(Type type, string expectedReadableName)
     {
         // Arrange
-        var typeNameR = new JanHafner.TypeNameR.TypeNameR();
+        var typeNameR = new TypeNameR();
 
         // Act
         var readableTypeName = typeNameR.ExtractReadable(type);

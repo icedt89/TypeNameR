@@ -1,7 +1,8 @@
 ﻿using FluentAssertions;
+using System.Reflection;
 using Xunit;
 
-namespace JanHafner.TypeNameR.Tests.TypeNameR;
+namespace JanHafner.TypeNameR.Tests.TypeNameRTests;
 
 public sealed class ExtractReadableMethodName
 {
@@ -33,7 +34,7 @@ public sealed class ExtractReadableMethodName
     public void ProcessMethod(string methodName, string expectedReadableName)
     {
         // Arrange
-        var typeNameR = new JanHafner.TypeNameR.TypeNameR();
+        var typeNameR = new TypeNameR();
 
         var methodInfo = typeof(MethodsClass).GetMethod(methodName) ?? throw new InvalidOperationException("Method");
 
@@ -43,5 +44,23 @@ public sealed class ExtractReadableMethodName
 
         // Assert
         readableMethodName.Should().Be(expectedReadableName);
+    }
+
+    [Fact]
+    public void ProcessConstructor()
+    {
+        // Arrange
+        var typeNameR = new TypeNameR();
+
+        var methodInfo = typeof(MethodsClass).GetConstructor(BindingFlags.Public
+                                                           | BindingFlags.Instance,
+                                                             Type.EmptyTypes) ?? throw new InvalidOperationException("Constructor");
+
+        // Act
+        var readableMethodName = typeNameR.ExtractReadable(methodInfo, NameRControlFlags.All
+                                                                    & ~NameRControlFlags.IncludeFullTypeName);
+
+        // Assert
+        readableMethodName.Should().Be("public .ctor()");
     }
 }

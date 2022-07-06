@@ -27,13 +27,6 @@ public static class StaticTypeNameR
         StaticTypeNameR.defaultTypeNameR = typeNameR;
     }
 
-    /// <summary>
-    /// Extracts the readable name of the <see cref="Type"/> defined by <typeparamref name="T"/>.
-    /// </summary>
-    /// <typeparam name="T">Any type you want.</typeparam>
-    /// <param name="typeNameR">The <see cref="ITypeNameR"/> which is used to extract the readable name.</param>
-    /// <returns>The readable name of the <see cref="Type"/> supplied by <typeparamref name="T"/>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="typeNameR"/> is <see langword="null"/>.</exception>
     public static string ExtractReadable<T>(this ITypeNameR typeNameR)
     {
         if (typeNameR is null)
@@ -110,7 +103,7 @@ public static class StaticTypeNameR
     }
 
     public static TException RewriteStackTraces<TException>(this TException exception,
-                                                            NameRControlFlags nameRControlFlags = NameRControlFlags.None)
+                                                                 NameRControlFlags nameRControlFlags = NameRControlFlags.None)
         where TException : notnull, Exception
     {
         if (exception is null)

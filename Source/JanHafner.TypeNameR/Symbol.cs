@@ -38,5 +38,7 @@ internal static class Symbol
 
     public const string NewLine = "\r\n";
 
-    public const string Constructor = "Constructor";
+    public const string Constructor = ".ctor";
+
+    public const string StaticConstructor = ".cctor";
 }
