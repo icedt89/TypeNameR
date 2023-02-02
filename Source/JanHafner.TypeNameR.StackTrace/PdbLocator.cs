@@ -19,13 +19,13 @@ public sealed class PdbLocator : IPdbLocator
             return null;
         }
 
-        using var assemblyFileStream = fileSystem.FileStream.Create(assemblyLocation, FileMode.Open, FileAccess.Read, FileShare.Read);
+        using var assemblyFileStream = fileSystem.FileStream.New(assemblyLocation, FileMode.Open, FileAccess.Read, FileShare.Read);
 
         using var peReader = new PEReader(assemblyFileStream);
 
         foreach (var debugDirectoryEntry in peReader.ReadDebugDirectory())
         {
-            var pdbLocation = this.GetPdbLocationFromDebugDirectoryEntry(assemblyLocation, peReader, debugDirectoryEntry);
+            var pdbLocation = GetPdbLocationFromDebugDirectoryEntry(assemblyLocation, peReader, debugDirectoryEntry);
             if (pdbLocation is not null)
             {
                 return pdbLocation;

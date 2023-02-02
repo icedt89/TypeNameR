@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System.Diagnostics;
 using System.Text;
 using Xunit;
 
@@ -14,8 +15,8 @@ public sealed class SetStackTrace
 
     public SetStackTrace()
     {
-        this.exception = new();
-        this.stackTrace = new();
+        exception = new();
+        stackTrace = new();
     }
 
     [Fact]
@@ -23,34 +24,32 @@ public sealed class SetStackTrace
     {
         // Arrange
         var content = Guid.NewGuid().ToString();
-        this.stackTrace.Append(content);
+        stackTrace.Append(content);
 
         // Act
-        this.Call();
+        Call();
 
         // Assert
-        this.exception.StackTrace.Should().Be(content);
+        exception.StackTrace.Should().Be(content);
     }
 
     [Fact]
     public void SetTheStacktraceWithStoringTheOriginal()
     {
         // Arrange
-        this.storeOriginalStackTrace = true;
+        storeOriginalStackTrace = true;
 
         var content = Guid.NewGuid().ToString();
-        this.stackTrace.Append(content);
+        stackTrace.Append(content);
 
         // Act
-        this.Call();
+        Call();
 
         // Assert
-        this.exception.StackTrace.Should().Be(content);
-        this.exception.Data.Contains(ExceptionStackTraceManipulator.OriginalStackTraceKey).Should().BeTrue();
+        exception.StackTrace.Should().Be(content);
+        exception.Data.Contains(ExceptionStackTraceManipulator.OriginalStackTraceKey).Should().BeTrue();
     }
 
-    private void Call()
-    {
-        this.exception.SetStackTrace(this.stackTrace, this.storeOriginalStackTrace);
-    }
+    [DebuggerStepThrough]
+    private void Call() => exception.SetStackTrace(stackTrace, storeOriginalStackTrace);
 }

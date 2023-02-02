@@ -6,11 +6,8 @@ namespace JanHafner.TypeNameR;
 [ExcludeFromCodeCoverage]
 internal static class NullabilityHelper
 {
-    public static bool IsNullableReferenceType(this NullabilityInfo nullabilityInfo)
-    {
-        return nullabilityInfo.ReadState == NullabilityState.Nullable
-            && Nullable.GetUnderlyingType(nullabilityInfo.Type) is null;
-    }
+    public static bool IsNullableReferenceType(this NullabilityInfo nullabilityInfo) => nullabilityInfo.ReadState == NullabilityState.Nullable
+                                                                                        && Nullable.GetUnderlyingType(nullabilityInfo.Type) is null;
 
     public static bool IsNullableStruct(this Type type, [NotNullWhen(true)] out Type? underlyingType)
     {
@@ -19,8 +16,5 @@ internal static class NullabilityHelper
         return underlyingType is not null;
     }
 
-    public static NullabilityInfo GetNullabilityInfo(this ParameterInfo parameterInfo)
-    {
-        return new NullabilityInfoContext().Create(parameterInfo);
-    }
+    public static NullabilityInfo GetNullabilityInfo(this ParameterInfo parameterInfo) => new NullabilityInfoContext().Create(parameterInfo);
 }

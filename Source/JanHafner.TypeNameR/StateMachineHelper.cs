@@ -77,7 +77,5 @@ internal static class StateMachineHelper
 
     private static Type? GetStateMachineImplementationTypeCore<TStateMachineAttribute>(this MethodInfo methodInfo)
         where TStateMachineAttribute : StateMachineAttribute
-    {
-        return methodInfo.GetCustomAttribute<TStateMachineAttribute>()?.StateMachineType;
-    }
+        => methodInfo.GetCustomAttribute<TStateMachineAttribute>()?.StateMachineType;
 }

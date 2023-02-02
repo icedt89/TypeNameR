@@ -10,9 +10,7 @@ public sealed class StackTraceGenerator
     }
 
     private static unsafe Task<int?> AsyncTaskMethod(ref string? string1, int?*[] int1, int? int2 = null)
-    {
-        throw new InvalidOperationException("AsyncTaskMethod has thrown");
-    }
+        => throw new InvalidOperationException("AsyncTaskMethod has thrown");
 
     public static async ValueTask CallAsyncValueTaskMethod()
     {
@@ -22,9 +20,7 @@ public sealed class StackTraceGenerator
     }
 
     private static ValueTask<int?> AsyncValueTaskMethod(ref string? string1, int?[] int1, int? int2 = null)
-    {
-        throw new InvalidOperationException("AsyncValueTaskMethod has thrown");
-    }
+        => throw new InvalidOperationException("AsyncValueTaskMethod has thrown");
 
     public static IEnumerable<bool> CallIteratorMethod()
     {
@@ -42,10 +38,7 @@ public sealed class StackTraceGenerator
         throw new InvalidOperationException("IteratorMethod has thrown");
     }
 
-    public static Task<TResult> CallRecursivGenericMethod<TResult>(ref int? int1)
-    {
-        return RecursivGenericMethod<TResult>(ref int1, 1, 10);
-    }
+    public static Task<TResult> CallRecursivGenericMethod<TResult>(ref int? int1) => RecursivGenericMethod<TResult>(ref int1, 1, 10);
 
     private static Task<TResult> RecursivGenericMethod<TResult>(ref int? int1, int recursionDepth, int stopAt)
     {

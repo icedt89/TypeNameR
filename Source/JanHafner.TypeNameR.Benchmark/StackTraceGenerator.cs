@@ -2,10 +2,7 @@
 
 public sealed class StackTraceGenerator
 {
-    public static Task<TResult> CallRecursivGenericMethod<TResult>(ref int? int1)
-    {
-        return RecursivGenericMethod<TResult>(ref int1, 1, 10);
-    }
+    public static Task<TResult> CallRecursivGenericMethod<TResult>(ref int? int1) => RecursivGenericMethod<TResult>(ref int1, 1, 10);
 
     private static Task<TResult> RecursivGenericMethod<TResult>(ref int? int1, int recursionDepth, int stopAt)
     {

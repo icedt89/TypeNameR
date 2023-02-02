@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Jobs;
 using JanHafner.TypeNameR.StackTrace;
 using System.Diagnostics;
 using System.IO.Abstractions;
@@ -6,6 +7,9 @@ using System.IO.Abstractions;
 namespace JanHafner.TypeNameR.Benchmark;
 
 [MemoryDiagnoser]
+[SimpleJob(RuntimeMoniker.Net60, baseline: true)]
+[SimpleJob(RuntimeMoniker.Net70)]
+// [SimpleJob(RuntimeMoniker.Net80)] TODO
 public class ExceptionBenchmarks
 {
     private Exception catchedException;
@@ -15,7 +19,7 @@ public class ExceptionBenchmarks
     [GlobalSetup]
     public async Task GlobalSetup()
     {
-        this.typeNameR = new(new StackFrameMetadataProvider(new PdbLocator(new FileSystem()), new FileSystem()));
+        typeNameR = new(new StackFrameMetadataProvider(new PdbLocator(new FileSystem()), new FileSystem()));
 
         try
         {
@@ -24,24 +28,19 @@ public class ExceptionBenchmarks
         }
         catch (Exception exception)
         {
-            this.catchedException = exception;
+            catchedException = exception;
         }
     }
 
-    [Benchmark(Baseline = true)]
-    public void RewriteExceptionStackTracesWithBen()
-    {
-        this.catchedException.Demystify();
-    }
+    // [Benchmark(Baseline = true)]
+    public void RewriteExceptionStackTracesWithBen() => catchedException.Demystify();
 
     [Benchmark]
     public void RewriteExceptionStackTraces()
-    {
-        this.typeNameR.RewriteStackTrace(catchedException, NameRControlFlags.All
-                                                        & ~NameRControlFlags.IncludeHiddenStackFrames
-                                                        & ~NameRControlFlags.IncludeAccessModifier
-                                                        & ~NameRControlFlags.IncludeStaticModifier
-                                                        & ~NameRControlFlags.IncludeParameterDefaultValue
-                                                        & ~NameRControlFlags.StoreOriginalStackTraceInExceptionData);
-    }
+        => typeNameR.RewriteStackTrace(catchedException, NameRControlFlags.All
+                                                         & ~NameRControlFlags.IncludeHiddenStackFrames
+                                                         & ~NameRControlFlags.IncludeAccessModifier
+                                                         & ~NameRControlFlags.IncludeStaticModifier
+                                                         & ~NameRControlFlags.IncludeParameterDefaultValue
+                                                         & ~NameRControlFlags.StoreOriginalStackTraceInExceptionData);
 }

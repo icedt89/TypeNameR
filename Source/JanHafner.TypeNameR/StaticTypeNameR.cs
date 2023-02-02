@@ -10,7 +10,7 @@ public static class StaticTypeNameR
     /// <summary>
     /// Gets the default <see cref="ITypeNameR"/> used by extension methods in this class if no custom <see cref="ITypeNameR"/> is supplied.
     /// </summary>
-    public static ITypeNameR DefaultTypeNameR => StaticTypeNameR.defaultTypeNameR;
+    public static ITypeNameR DefaultTypeNameR => defaultTypeNameR;
 
     /// <summary>
     /// Sets the supplied <see cref="ITypeNameR"/> as default for <see cref="DefaultTypeNameR"/>.
@@ -24,27 +24,27 @@ public static class StaticTypeNameR
             throw new ArgumentNullException(nameof(typeNameR));
         }
 
-        StaticTypeNameR.defaultTypeNameR = typeNameR;
+        defaultTypeNameR = typeNameR;
     }
 
-    public static string ExtractReadable<T>(this ITypeNameR typeNameR)
+    public static string ExtractReadable<T>(this ITypeNameR typeNameR, bool fullTypeName = false)
     {
         if (typeNameR is null)
         {
             throw new ArgumentNullException(nameof(typeNameR));
         }
 
-        return typeNameR.ExtractReadable(typeof(T));
+        return typeNameR.ExtractReadable(typeof(T), fullTypeName);
     }
 
-    public static string ExtractReadable(this Type type)
+    public static string ExtractReadable(this Type type, bool fullTypeName = false)
     {
         if (type is null)
         {
             throw new ArgumentNullException(nameof(type));
         }
 
-        return StaticTypeNameR.defaultTypeNameR.ExtractReadable(type);
+        return defaultTypeNameR.ExtractReadable(type, fullTypeName);
     }
 
     public static string ExtractReadable(this MethodInfo methodInfo,
@@ -55,7 +55,7 @@ public static class StaticTypeNameR
             throw new ArgumentNullException(nameof(methodInfo));
         }
 
-        return StaticTypeNameR.defaultTypeNameR.ExtractReadable(methodInfo, nameRControlFlags);
+        return defaultTypeNameR.ExtractReadable(methodInfo, nameRControlFlags);
     }
 
     public static string ExtractReadable(this ParameterInfo parameterInfo,
@@ -66,7 +66,7 @@ public static class StaticTypeNameR
             throw new ArgumentNullException(nameof(parameterInfo));
         }
 
-        return StaticTypeNameR.defaultTypeNameR.ExtractReadable(parameterInfo, nameRControlFlags);
+        return defaultTypeNameR.ExtractReadable(parameterInfo, nameRControlFlags);
     }
 
     public static string ExtractReadable(StackFrame stackFrame,
@@ -77,7 +77,7 @@ public static class StaticTypeNameR
             throw new ArgumentNullException(nameof(stackFrame));
         }
 
-        return StaticTypeNameR.defaultTypeNameR.ExtractReadable(stackFrame, nameRControlFlags);
+        return defaultTypeNameR.ExtractReadable(stackFrame, nameRControlFlags);
     }
 
     public static string ExtractReadable(this System.Diagnostics.StackTrace stackTrace,
@@ -88,7 +88,7 @@ public static class StaticTypeNameR
             throw new ArgumentNullException(nameof(stackTrace));
         }
 
-        return StaticTypeNameR.defaultTypeNameR.ExtractReadable(stackTrace, nameRControlFlags);
+        return defaultTypeNameR.ExtractReadable(stackTrace, nameRControlFlags);
     }
 
     public static string ExtractReadableStackTrace(this Exception exception,
@@ -99,7 +99,7 @@ public static class StaticTypeNameR
             throw new ArgumentNullException(nameof(exception));
         }
 
-        return StaticTypeNameR.defaultTypeNameR.ExtractReadableStackTrace(exception, nameRControlFlags);
+        return defaultTypeNameR.ExtractReadableStackTrace(exception, nameRControlFlags);
     }
 
     public static TException RewriteStackTraces<TException>(this TException exception,
@@ -111,6 +111,6 @@ public static class StaticTypeNameR
             throw new ArgumentNullException(nameof(exception));
         }
 
-        return StaticTypeNameR.defaultTypeNameR.RewriteStackTrace(exception, nameRControlFlags);
+        return defaultTypeNameR.RewriteStackTrace(exception, nameRControlFlags);
     }
 }

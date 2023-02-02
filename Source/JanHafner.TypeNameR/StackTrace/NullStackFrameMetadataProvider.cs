@@ -14,8 +14,5 @@ public sealed class NullStackFrameMetadataProvider : IStackFrameMetadataProvider
     /// </summary>
     /// <param name="stackFrame">Is unused.</param>
     /// <returns>Always <see langword="null"/>.</returns>
-    public StackFrameMetadata? GetStackFrameMetadata(StackFrame? stackFrame)
-    {
-        return null;
-    }
+    public StackFrameMetadata? GetStackFrameMetadata(StackFrame? stackFrame) => null;
 }

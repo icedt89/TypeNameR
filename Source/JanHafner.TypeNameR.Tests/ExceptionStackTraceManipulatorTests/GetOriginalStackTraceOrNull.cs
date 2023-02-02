@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using System.Diagnostics;
 using Xunit;
 
 namespace JanHafner.TypeNameR.Tests.ExceptionStackTraceManipulatorTests;
@@ -9,14 +10,14 @@ public sealed class GetOriginalStackTraceOrNull
 
     public GetOriginalStackTraceOrNull()
     {
-        this.exception = new Exception();
+        exception = new Exception();
     }
 
     [Fact]
     public void ReturnsNullIfOriginalStacktraceIsNotAvailable()
     {
         // Act
-        var result = this.Call();
+        var result = Call();
 
         // Assert
         result.Should().BeNull();
@@ -31,14 +32,12 @@ public sealed class GetOriginalStackTraceOrNull
         exception.Data.Add(ExceptionStackTraceManipulator.OriginalStackTraceKey, expected);
 
         // Act
-        var result = this.Call();
+        var result = Call();
 
         // Assert
         result.Should().Be(expected);
     }
 
-    private string? Call()
-    {
-        return this.exception.GetOriginalStackTraceOrNull();
-    }
+    [DebuggerStepThrough]
+    private string? Call() => exception.GetOriginalStackTraceOrNull();
 }

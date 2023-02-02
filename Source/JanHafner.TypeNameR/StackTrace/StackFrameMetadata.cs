@@ -14,10 +14,10 @@ public readonly struct StackFrameMetadata : IEquatable<StackFrameMetadata>
         {
             throw new ArgumentException($"'{nameof(fileName)}' cannot be null or whitespace.", nameof(fileName));
         }
-
-        this.FileName = fileName;
-        this.LineNumber = lineNumber;
-        this.ColumnNumber = columnNumber;
+        
+        FileName = fileName;
+        LineNumber = lineNumber;
+        ColumnNumber = columnNumber;
     }
 
     /// <summary>
@@ -36,34 +36,19 @@ public readonly struct StackFrameMetadata : IEquatable<StackFrameMetadata>
     public int ColumnNumber { get; }
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj)
-    {
-        return obj is StackFrameMetadata metadata && this.Equals(metadata);
-    }
+    public override bool Equals(object? obj) => obj is StackFrameMetadata metadata && Equals(metadata);
 
     /// <inheritdoc/>
-    public bool Equals(StackFrameMetadata other)
-    {
-        return string.Equals(this.FileName, other.FileName, StringComparison.OrdinalIgnoreCase) &&
-               this.LineNumber == other.LineNumber &&
-               this.ColumnNumber == other.ColumnNumber;
-    }
+    public bool Equals(StackFrameMetadata other) => string.Equals(FileName, other.FileName, StringComparison.OrdinalIgnoreCase)
+                                                    && LineNumber == other.LineNumber
+                                                    && ColumnNumber == other.ColumnNumber;
 
     /// <inheritdoc/>
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(this.FileName, this.LineNumber, this.ColumnNumber);
-    }
+    public override int GetHashCode() => HashCode.Combine(FileName, LineNumber, ColumnNumber);
 
     /// <inheritdoc/>
-    public static bool operator ==(StackFrameMetadata left, StackFrameMetadata right)
-    {
-        return left.Equals(right);
-    }
+    public static bool operator ==(StackFrameMetadata left, StackFrameMetadata right) => left.Equals(right);
 
     /// <inheritdoc/>
-    public static bool operator !=(StackFrameMetadata left, StackFrameMetadata right)
-    {
-        return !(left == right);
-    }
+    public static bool operator !=(StackFrameMetadata left, StackFrameMetadata right) => !(left == right);
 }

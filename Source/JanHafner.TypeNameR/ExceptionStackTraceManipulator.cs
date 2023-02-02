@@ -14,7 +14,7 @@ public static class ExceptionStackTraceManipulator
     private static readonly FieldInfo? StackTraceBackingField = typeof(Exception).GetField("_stackTraceString", BindingFlags.Instance | BindingFlags.NonPublic);
 #pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
 
-    public static bool WasStackTraceBackingFieldFound => ExceptionStackTraceManipulator.StackTraceBackingField is not null;
+    public static bool WasStackTraceBackingFieldFound => StackTraceBackingField is not null;
 
     /// <summary>
     /// Gets the original stacktrace if available.
@@ -34,12 +34,12 @@ public static class ExceptionStackTraceManipulator
 
     private static string? GetOriginalStackTraceOrNullCore(this Exception exception)
     {
-        if (!exception.Data.Contains(ExceptionStackTraceManipulator.OriginalStackTraceKey))
+        if (!exception.Data.Contains(OriginalStackTraceKey))
         {
             return null;
         }
 
-        return (string?)exception.Data[ExceptionStackTraceManipulator.OriginalStackTraceKey];
+        return (string?)exception.Data[OriginalStackTraceKey];
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public static class ExceptionStackTraceManipulator
 
         if (removeStoredOriginalStackTrace)
         {
-            exception.Data.Remove(ExceptionStackTraceManipulator.OriginalStackTraceKey);
+            exception.Data.Remove(OriginalStackTraceKey);
         }
 
         return true;
@@ -93,7 +93,7 @@ public static class ExceptionStackTraceManipulator
     {
         if (storeOriginalStackTrace)
         {
-            exception.Data[ExceptionStackTraceManipulator.OriginalStackTraceKey] = exception.StackTrace;
+            exception.Data[OriginalStackTraceKey] = exception.StackTrace;
         }
 
         exception.SetStackTraceCore(stackTrace);
@@ -103,7 +103,7 @@ public static class ExceptionStackTraceManipulator
     {
         try
         {
-            ExceptionStackTraceManipulator.StackTraceBackingField!.SetValue(exception, stackTrace.ToString());
+            StackTraceBackingField!.SetValue(exception, stackTrace.ToString());
         }
         catch (FieldAccessException fieldAccessException)
         {

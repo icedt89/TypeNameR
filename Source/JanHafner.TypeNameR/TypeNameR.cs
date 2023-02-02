@@ -28,7 +28,7 @@ public sealed class TypeNameR : ITypeNameR
     #region Type specific
 
     /// <inheritdoc />
-    public string ExtractReadable(Type type)
+    public string ExtractReadable(Type type, bool fullTypename)
     {
         if (type is null)
         {
@@ -37,57 +37,63 @@ public sealed class TypeNameR : ITypeNameR
 
         var stringBuilder = new StringBuilder();
 
-        this.ProcessTypeCore(stringBuilder, type, false, null);
+        ProcessTypeCore(stringBuilder, type, fullTypename, null);
     
         return stringBuilder.ToString();
     }
 
     private void ProcessTypeCore(StringBuilder stringBuilder, Type type, bool isInNestedContext, NullabilityInfo? nullabilityInfo)
     {
-        if (this.TryProcessNullableType(stringBuilder, type, nullabilityInfo))
+        if (TryProcessNullableType(stringBuilder, type, isInNestedContext, nullabilityInfo))
         {
             return;
         }
 
-        if (this.TryProcessPredefinedType(stringBuilder, type))
+        if (TryProcessPredefinedType(stringBuilder, type))
         {
             return;
         }
 
-        if (this.TryProcessArrayType(stringBuilder, type, nullabilityInfo))
+        if (TryProcessArrayType(stringBuilder, type, isInNestedContext, nullabilityInfo))
         {
             return;
         }
 
-        if (this.TryProcessPointerType(stringBuilder, type, nullabilityInfo))
+        if (TryProcessPointerType(stringBuilder, type, nullabilityInfo))
         {
             return;
         }
 
-        if (this.TryProcessByRefType(stringBuilder, type, nullabilityInfo))
+        if (TryProcessByRefType(stringBuilder, type, nullabilityInfo))
         {
             return;
         }
 
-        this.ProcessNested(stringBuilder, type);
+        ProcessNested(stringBuilder, type);
 
-        TypeNameR.ProcessTypeName(stringBuilder, type, isInNestedContext);
-
-        this.ProcessGenerics(stringBuilder, type.GetGenericArguments(), nullabilityInfo?.GenericTypeArguments);
-    }
-
-    private static void ProcessTypeName(StringBuilder stringBuilder, Type type, bool isInNestedContext)
-    {
-        ReadOnlySpan<char> readableTypeName = isInNestedContext && type.DeclaringType is null
-                                   ? type.FullName ?? type.Name
-                                   : type.Name;
+        ReadOnlySpan<char> readableTypeName = isInNestedContext && type.DeclaringType is null 
+            ? type.FullName ?? type.Name
+            : type.Name;
 
         stringBuilder.Append(readableTypeName.RemoveGenericParametersCount());
+
+        ProcessGenerics(stringBuilder, type.GetGenericArguments(), nullabilityInfo?.GenericTypeArguments);
     }
+
+    // private static void ProcessTypeName(StringBuilder stringBuilder, Type type, bool isInNestedContext)
+    // {
+    //     // IsInNestedContext umbenennen zu UseFullTypeName, Auswertung des Parameters an Aufrufer delegieren.
+    //     // throw new NotImplementedException();
+    //     ReadOnlySpan<char> readableTypeName = isInNestedContext && type.DeclaringType is null
+    //                                ? type.FullName ?? type.Name
+    //                                : type.Name;
+    //
+    //     stringBuilder.Append(readableTypeName.RemoveGenericParametersCount());
+    // }
 
     private bool TryProcessPredefinedType(StringBuilder stringBuilder, Type type)
     {
-        if (!this.typeNameROptions.PredefinedTypeNames.TryGetValue(type, out var readablePrimitiveTypeName1))
+        if (!typeNameROptions.PredefinedTypeNames.TryGetValue(type, out var readablePrimitiveTypeName1))
         {
             return false;
         }
@@ -97,7 +103,7 @@ public sealed class TypeNameR : ITypeNameR
         return true;
     }
 
-    private bool TryProcessArrayType(StringBuilder stringBuilder, Type type, NullabilityInfo? nullabilityInfo)
+    private bool TryProcessArrayType(StringBuilder stringBuilder, Type type, bool isInNestedContext, NullabilityInfo? nullabilityInfo)
     {
         if (!type.IsArray)
         {
@@ -106,7 +112,7 @@ public sealed class TypeNameR : ITypeNameR
 
         var elementType = type.GetElementType()!;
 
-        this.ProcessTypeCore(stringBuilder, elementType, false, nullabilityInfo);
+        ProcessTypeCore(stringBuilder, elementType, isInNestedContext, nullabilityInfo);
 
         stringBuilder.Append(Symbol.LeftSquareBracket);
 
@@ -131,7 +137,7 @@ public sealed class TypeNameR : ITypeNameR
 
         var elementType = type.GetElementType()!;
 
-        this.ProcessTypeCore(stringBuilder, elementType, false, nullabilityInfo?.ElementType);
+        ProcessTypeCore(stringBuilder, elementType, false, nullabilityInfo?.ElementType);
 
         stringBuilder.Append(Symbol.Asterisk);
 
@@ -147,16 +153,16 @@ public sealed class TypeNameR : ITypeNameR
 
         var elementType = type.GetElementType()!;
 
-        this.ProcessTypeCore(stringBuilder, elementType, false, nullabilityInfo?.ElementType);
+        ProcessTypeCore(stringBuilder, elementType, false, nullabilityInfo?.ElementType);
 
         return true;
     }
 
-    private bool TryProcessNullableType(StringBuilder stringBuilder, Type type, NullabilityInfo? nullabilityInfo)
+    private bool TryProcessNullableType(StringBuilder stringBuilder, Type type, bool isInNestedContext, NullabilityInfo? nullabilityInfo)
     {
         if (type.IsNullableStruct(out var underlyingType))
         {
-            this.ProcessTypeCore(stringBuilder, underlyingType, false, null);
+            ProcessTypeCore(stringBuilder, underlyingType, isInNestedContext, null);
 
             stringBuilder.Append(Symbol.QuestionMark);
 
@@ -165,7 +171,7 @@ public sealed class TypeNameR : ITypeNameR
 
         if (nullabilityInfo is not null && nullabilityInfo.Type == type && nullabilityInfo.IsNullableReferenceType())
         {
-            this.ProcessTypeCore(stringBuilder, type, false, nullabilityInfo.ElementType);
+            ProcessTypeCore(stringBuilder, type, isInNestedContext, nullabilityInfo.ElementType);
 
             stringBuilder.Append(Symbol.QuestionMark);
 
@@ -192,7 +198,7 @@ public sealed class TypeNameR : ITypeNameR
                 genericTypeNullabilityInfo = genericTypesNullability[i];
             }
 
-            this.ProcessTypeCore(stringBuilder, genericTypes[i], false, genericTypeNullabilityInfo);
+            ProcessTypeCore(stringBuilder, genericTypes[i], false, genericTypeNullabilityInfo);
 
             if (i < genericTypes.Length - 1)
             {
@@ -210,7 +216,7 @@ public sealed class TypeNameR : ITypeNameR
             return;
         }
 
-        this.ProcessTypeCore(stringBuilder, type.DeclaringType, true, null);
+        ProcessTypeCore(stringBuilder, type.DeclaringType, true, null);
 
         stringBuilder.Append(Symbol.Plus);
     }
@@ -229,7 +235,7 @@ public sealed class TypeNameR : ITypeNameR
 
         var stringBuilder = new StringBuilder();
 
-        this.ProcessMethod(stringBuilder, methodBase, StateMachineTypes.None, nameRControlFlags);
+        ProcessMethod(stringBuilder, methodBase, StateMachineTypes.None, nameRControlFlags);
 
         return stringBuilder.ToString();
     }
@@ -244,20 +250,20 @@ public sealed class TypeNameR : ITypeNameR
 
         var stringBuilder = new StringBuilder();
 
-        this.ProcessParameter(stringBuilder, parameterInfo, nameRControlFlags);
+        ProcessParameter(stringBuilder, parameterInfo, nameRControlFlags);
 
         return stringBuilder.ToString();
     }
 
     private void ProcessMethod(StringBuilder stringBuilder, MethodBase methodBase, StateMachineTypes stateMachineType, NameRControlFlags nameRControlFlags)
     {
-        TypeNameR.ProcessMethodModifier(stringBuilder, methodBase, stateMachineType, nameRControlFlags);
+        ProcessMethodModifier(stringBuilder, methodBase, stateMachineType, nameRControlFlags);
 
         // Otherwise it is a constructor
         var asMethodInfo = methodBase as MethodInfo;
         if (asMethodInfo is not null && nameRControlFlags.HasFlag(NameRControlFlags.IncludeReturnParameter))
         {
-            this.ProcessParameter(stringBuilder, asMethodInfo.ReturnParameter, nameRControlFlags);
+            ProcessParameter(stringBuilder, asMethodInfo.ReturnParameter, nameRControlFlags);
 
             stringBuilder.Append(Symbol.Space);
         }
@@ -267,7 +273,7 @@ public sealed class TypeNameR : ITypeNameR
             stringBuilder.Append(methodBase.DeclaringType.Namespace)
                          .Append(Symbol.FullStop);
             
-            this.ProcessTypeCore(stringBuilder, methodBase.DeclaringType, false, null);
+            ProcessTypeCore(stringBuilder, methodBase.DeclaringType, false, null);
             
             stringBuilder.Append(Symbol.FullStop);
         }
@@ -287,7 +293,7 @@ public sealed class TypeNameR : ITypeNameR
 
         if (asMethodInfo is not null)
         {
-            this.ProcessGenerics(stringBuilder, methodBase.GetGenericArguments(), null);
+            ProcessGenerics(stringBuilder, methodBase.GetGenericArguments(), null);
         }
 
         stringBuilder.Append(Symbol.LeftParenthesis);
@@ -297,7 +303,7 @@ public sealed class TypeNameR : ITypeNameR
             stringBuilder.Append(Modifier.ThisWithEndingSpace);
         }
         
-        this.ProcessParameters(stringBuilder, methodBase.GetParameters(), nameRControlFlags);
+        ProcessParameters(stringBuilder, methodBase.GetParameters(), nameRControlFlags);
 
         stringBuilder.Append(Symbol.RightParenthesis);
     }
@@ -336,7 +342,7 @@ public sealed class TypeNameR : ITypeNameR
 
         for (var i = 0; i < parameters.Length; i++)
         {
-            this.ProcessParameter(stringBuilder, parameters[i], nameRControlFlags);
+            ProcessParameter(stringBuilder, parameters[i], nameRControlFlags);
 
             if (i < parameters.Length - 1)
             {
@@ -354,7 +360,7 @@ public sealed class TypeNameR : ITypeNameR
 
         var nullabilityInfo = parameterInfo.GetNullabilityInfo();
 
-        this.ProcessTypeCore(stringBuilder, parameterInfo.ParameterType, false, nullabilityInfo);
+        ProcessTypeCore(stringBuilder, parameterInfo.ParameterType, false, nullabilityInfo);
 
         if (parameterInfo.Position == -1)
         {
@@ -366,7 +372,7 @@ public sealed class TypeNameR : ITypeNameR
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeParameterDefaultValue))
         {
-            TypeNameR.ProcessParameterSuffix(stringBuilder, parameterInfo);
+            ProcessParameterSuffix(stringBuilder, parameterInfo);
         }
     }
 
@@ -437,7 +443,7 @@ public sealed class TypeNameR : ITypeNameR
         
         var stringBuilder = new StringBuilder();
 
-        this.ProcessStackTrace(stringBuilder, stackTrace, nameRControlFlags);
+        ProcessStackTrace(stringBuilder, stackTrace, nameRControlFlags);
 
         return stringBuilder.ToString();
     }
@@ -452,7 +458,7 @@ public sealed class TypeNameR : ITypeNameR
 
         var stringBuilder = new StringBuilder();
 
-        if (this.ProcessStackFrame(stringBuilder, stackFrame, stackFrame.GetMethod(), TypeNameR.DefaultCallDepth, nameRControlFlags))
+        if (ProcessStackFrame(stringBuilder, stackFrame, stackFrame.GetMethod(), DefaultCallDepth, nameRControlFlags))
         {
             throw new InvalidOperationException("Unable to process stack frame");
         }
@@ -467,7 +473,7 @@ public sealed class TypeNameR : ITypeNameR
         {
             var recursiveStackFrame = recursiveStackTrace[frameIndex];
 
-            if (this.ProcessStackFrame(stringBuilder, recursiveStackFrame.StackFrame, recursiveStackFrame.Method, recursiveStackFrame.CallDepth, nameRControlFlags) && frameIndex < recursiveStackTrace.Length - 1)
+            if (ProcessStackFrame(stringBuilder, recursiveStackFrame.StackFrame, recursiveStackFrame.Method, recursiveStackFrame.CallDepth, nameRControlFlags) && frameIndex < recursiveStackTrace.Length - 1)
             {
                 stringBuilder.Append(Symbol.NewLine);
             }
@@ -481,7 +487,7 @@ public sealed class TypeNameR : ITypeNameR
             return false;
         }
 
-        if (this.SkipStackFrame(nameRControlFlags, methodBase))
+        if (SkipStackFrame(nameRControlFlags, methodBase))
         {
             return false;
         }
@@ -496,7 +502,7 @@ public sealed class TypeNameR : ITypeNameR
         stringBuilder.Append(StackTraceSymbol.Indent)
                      .Append(StackTraceSymbol.AtWithEndingSpace);
 
-        this.ProcessMethod(stringBuilder, realMethodInfo ?? methodBase, stateMachineType, nameRControlFlags);
+        ProcessMethod(stringBuilder, realMethodInfo ?? methodBase, stateMachineType, nameRControlFlags);
 
         if (stateMachineType.HasFlag(StateMachineTypes.Iterator))
         {
@@ -514,7 +520,7 @@ public sealed class TypeNameR : ITypeNameR
             return true;
         }
 
-        var stackFrameMetadata = currentStackFrame.GetExistingStackFrameMetadata() ?? this.stackFrameMetadataProvider.GetStackFrameMetadata(currentStackFrame);
+        var stackFrameMetadata = currentStackFrame.GetExistingStackFrameMetadata() ?? stackFrameMetadataProvider.GetStackFrameMetadata(currentStackFrame);
         if (stackFrameMetadata.HasValue)
         {
             stringBuilder.Append(StackTraceSymbol.InSourceWithLeadingAndEndingSpace)
@@ -527,11 +533,9 @@ public sealed class TypeNameR : ITypeNameR
     }
 
     private bool SkipStackFrame(NameRControlFlags nameRControlFlags, MethodBase methodBase)
-    {
-        return !nameRControlFlags.HasFlag(NameRControlFlags.IncludeHiddenStackFrames) && (methodBase.IsHidden() || methodBase.IsValueTaskSource()
-                                                                                 || (nameRControlFlags.HasFlag(NameRControlFlags.ExcludeStackFrameMethodsByNamespace)
-                                                                                  && this.typeNameROptions.ExcludedNamespaces.IsNamespaceExcluded(methodBase)));
-    }
+        => !nameRControlFlags.HasFlag(NameRControlFlags.IncludeHiddenStackFrames) && (methodBase.IsHidden() || methodBase.IsValueTaskSource()
+            || (nameRControlFlags.HasFlag(NameRControlFlags.ExcludeStackFrameMethodsByNamespace)
+                && typeNameROptions.ExcludedNamespaces.IsNamespaceExcluded(methodBase)));
 
     #endregion
 
@@ -549,7 +553,7 @@ public sealed class TypeNameR : ITypeNameR
 
         var stringBuilder = new StringBuilder();
 
-        this.ProcessStackTrace(stringBuilder, stackTrace, nameRControlFlags);
+        ProcessStackTrace(stringBuilder, stackTrace, nameRControlFlags);
 
         return stringBuilder.ToString();
     }
@@ -569,7 +573,7 @@ public sealed class TypeNameR : ITypeNameR
             throw new ArgumentNullException(nameof(exception));
         }
 
-        this.RewriteStackTraceCore(exception, nameRControlFlags);
+        RewriteStackTraceCore(exception, nameRControlFlags);
 
         return exception;
     }
@@ -586,7 +590,7 @@ public sealed class TypeNameR : ITypeNameR
                 
                 var originalStackTrace = new System.Diagnostics.StackTrace(exception, nameRControlFlags.HasFlag(NameRControlFlags.IncludeSourceInformation));
 
-                this.ProcessStackTrace(stringBuilder, originalStackTrace, nameRControlFlags);
+                ProcessStackTrace(stringBuilder, originalStackTrace, nameRControlFlags);
 
                 exception.SetStackTrace(stringBuilder, nameRControlFlags.HasFlag(NameRControlFlags.StoreOriginalStackTraceInExceptionData));
             }
@@ -598,7 +602,7 @@ public sealed class TypeNameR : ITypeNameR
 
             if (exception.InnerException is not null)
             {
-                this.RewriteStackTraceCore(exception.InnerException, nameRControlFlags);
+                RewriteStackTraceCore(exception.InnerException, nameRControlFlags);
             }
 
             if (exception is not AggregateException aggregateException)
@@ -608,7 +612,7 @@ public sealed class TypeNameR : ITypeNameR
 
             foreach (var innerException in aggregateException.InnerExceptions)
             {
-                this.RewriteStackTraceCore(innerException, nameRControlFlags);
+                RewriteStackTraceCore(innerException, nameRControlFlags);
             }
         }
         catch

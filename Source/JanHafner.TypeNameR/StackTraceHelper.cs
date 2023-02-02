@@ -1,7 +1,8 @@
-﻿using System.Buffers;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Pipes;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks.Sources;
 
 namespace JanHafner.TypeNameR;
@@ -66,33 +67,29 @@ internal static class StackTraceHelper
         for (var frameIndex = 0; frameIndex < stackTrace.FrameCount; frameIndex++)
         {
             var stackFrame = stackTrace.GetFrame(frameIndex);
-            if (stackFrame is null)
-            {
-                continue;
-            }
-
-            var stackFrameMethod = stackFrame.GetMethod();
+            var stackFrameMethod = stackFrame?.GetMethod();
             if (stackFrameMethod is null)
             {
                 continue;
             }
 
-            if (!recursiveStackFrames.TryGetValue(stackFrameMethod, out var recursiveStackFrame))
+            ref var valOrNew = ref CollectionsMarshal.GetValueRefOrAddDefault(recursiveStackFrames, stackFrameMethod, out var exists);
+            if (!exists)
             {
-                recursiveStackFrames[stackFrameMethod] = (stackFrame, stackFrameMethod, 1);
-
-                continue;
+                valOrNew.StackFrame = stackFrame!;
+                valOrNew.Method = stackFrameMethod;
+                valOrNew.CallDepth = 1;
             }
-
-            recursiveStackFrames[stackFrameMethod] = (recursiveStackFrame.StackFrame, recursiveStackFrame.Method, recursiveStackFrame.CallDepth + 1);
+            else
+            {
+                valOrNew.CallDepth += 1;
+            }
         }
-
+        
         return recursiveStackFrames.Values.ToArray();
     }
 
     [ExcludeFromCodeCoverage]
-    private static bool HasStackTraceHiddenAttribute(this ICustomAttributeProvider customAttributeProvider)
-    {
-        return customAttributeProvider.IsDefined(typeof(StackTraceHiddenAttribute), false);
-    }
+    private static bool HasStackTraceHiddenAttribute(this ICustomAttributeProvider customAttributeProvider) 
+        => customAttributeProvider.IsDefined(typeof(StackTraceHiddenAttribute), false);
 }

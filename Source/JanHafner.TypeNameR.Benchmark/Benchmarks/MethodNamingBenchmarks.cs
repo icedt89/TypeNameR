@@ -1,9 +1,13 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Jobs;
 using System.Reflection;
 
 namespace JanHafner.TypeNameR.Benchmark;
 
 [MemoryDiagnoser]
+[SimpleJob(RuntimeMoniker.Net60, baseline: true)]
+[SimpleJob(RuntimeMoniker.Net70)]
+// [SimpleJob(RuntimeMoniker.Net80)] TODO
 public class MethodNamingBenchmarks
 {
     private MethodInfo simpleCallMethodInfo;
@@ -15,33 +19,27 @@ public class MethodNamingBenchmarks
     [GlobalSetup]
     public void GlobalSetup()
     {
-        this.simpleCallMethodInfo = typeof(MethodsClass).GetMethod("Call1") ?? throw new InvalidOperationException();
-        this.genericCallMethodInfo = typeof(MethodsClass).GetMethod("Get18") ?? throw new InvalidOperationException();
+        simpleCallMethodInfo = typeof(MethodsClass).GetMethod("Call1") ?? throw new InvalidOperationException();
+        genericCallMethodInfo = typeof(MethodsClass).GetMethod("Get18") ?? throw new InvalidOperationException();
 
-        this.typeNameR = new();
+        typeNameR = new();
     }
 
     [Benchmark(Baseline = true)]
     public void SimpleCall_Name()
     {
-        var name = this.simpleCallMethodInfo.Name;
+        var name = simpleCallMethodInfo.Name;
     }
 
     [Benchmark]
-    public void SimpleCall()
-    {
-        this.typeNameR.ExtractReadable(this.simpleCallMethodInfo, NameRControlFlags.All);
-    }
+    public void SimpleCall() => typeNameR.ExtractReadable(simpleCallMethodInfo, NameRControlFlags.All);
 
     [Benchmark]
-    public void GenericCall()
-    {
-        this.typeNameR.ExtractReadable(this.genericCallMethodInfo, NameRControlFlags.All);
-    }
+    public void GenericCall() => typeNameR.ExtractReadable(genericCallMethodInfo, NameRControlFlags.All);
 
     [Benchmark]
     public void GenericCall_Name()
     {
-        var name = this.genericCallMethodInfo.Name;
+        var name = genericCallMethodInfo.Name;
     }
 }

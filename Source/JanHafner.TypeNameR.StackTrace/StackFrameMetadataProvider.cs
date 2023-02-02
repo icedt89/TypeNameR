@@ -30,7 +30,7 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
             return null;
         }
 
-        var pdbLocation = this.pdbLocator.GetPdbLocation(methodBase.Module.Assembly.Location);
+        var pdbLocation = pdbLocator.GetPdbLocation(methodBase.Module.Assembly.Location);
         if (pdbLocation is null)
         {
             return null;
@@ -71,13 +71,13 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
         }
 
         var ilOffset = stackFrame.GetILOffset();
-        var bestSequencePoint = StackFrameMetadataProvider.FindBestSequencePoint(ilOffset, sequencePoints);
+        var bestSequencePoint = FindBestSequencePoint(ilOffset, sequencePoints);
         if (!bestSequencePoint.HasValue)
         {
             return null;
         }
 
-        return StackFrameMetadataProvider.CreateStackFrameMetadata(metadataReader, bestSequencePoint.Value);
+        return CreateStackFrameMetadata(metadataReader, bestSequencePoint.Value);
     }
 
     private static StackFrameMetadata CreateStackFrameMetadata(MetadataReader metadataReader, SequencePoint sequencePoint)

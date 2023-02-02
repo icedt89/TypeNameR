@@ -1,8 +1,12 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Jobs;
 
 namespace JanHafner.TypeNameR.Benchmark;
 
 [MemoryDiagnoser]
+[SimpleJob(RuntimeMoniker.Net60, baseline: true)]
+[SimpleJob(RuntimeMoniker.Net70)]
+// [SimpleJob(RuntimeMoniker.Net80)] TODO
 public class TypeNamingBenchmarks
 {
     private Type simpleType = default!;
@@ -18,59 +22,47 @@ public class TypeNamingBenchmarks
     [GlobalSetup]
     public void GlobalSetup()
     {
-        this.simpleType = typeof(TestClass);
-        this.simpleNestedNestedType = typeof(TestClass.InnerTestClass.MostInnerTestClass);
-        this.genericSimpleType = typeof(GenericTestClass<int>);
-        this.genericComplexNestedNestedType = typeof(GenericTestClass<string[,,]>.InnerNonGenericTestClass.MostInnerGenericTestClass<IReadOnlyList<KeyValuePair<string, double>>, object[,][]>[][,,]);
+        simpleType = typeof(TestClass);
+        simpleNestedNestedType = typeof(TestClass.InnerTestClass.MostInnerTestClass);
+        genericSimpleType = typeof(GenericTestClass<int>);
+        genericComplexNestedNestedType = typeof(GenericTestClass<string[,,]>.InnerNonGenericTestClass.MostInnerGenericTestClass<IReadOnlyList<KeyValuePair<string, double>>, object[,][]>[][,,]);
 
-        this.typeNameR = new();
+        typeNameR = new();
     }
 
     [Benchmark]
-    public void SimpleType()
-    {
-        this.typeNameR.ExtractReadable(this.simpleType);
-    }
+    public void SimpleType() => typeNameR.ExtractReadable(simpleType, true);
 
     [Benchmark]
-    public void SimpleNestedNestedType()
-    {
-        this.typeNameR.ExtractReadable(this.simpleNestedNestedType);
-    }
+    public void SimpleNestedNestedType() => typeNameR.ExtractReadable(simpleNestedNestedType, true);
 
     [Benchmark]
-    public void GenericSimpleType()
-    {
-        this.typeNameR.ExtractReadable(this.genericSimpleType);
-    }
+    public void GenericSimpleType() => typeNameR.ExtractReadable(genericSimpleType, true);
 
     [Benchmark]
-    public void GenericComplexNestedNestedType()
-    {
-        this.typeNameR.ExtractReadable(this.genericComplexNestedNestedType);
-    }
+    public void GenericComplexNestedNestedType() => typeNameR.ExtractReadable(genericComplexNestedNestedType, true);
 
     [Benchmark(Baseline = true)]
     public void SimpleType_FullName()
     {
-        var name = this.simpleType.FullName;
+        var name = simpleType.FullName;
     }
 
     [Benchmark]
     public void SimpleNestedNestedType_FullName()
     {
-        var name = this.simpleNestedNestedType.FullName;
+        var name = simpleNestedNestedType.FullName;
     }
 
     [Benchmark]
     public void GenericSimpleType_FullName()
     {
-        var name = this.genericSimpleType.FullName;
+        var name = genericSimpleType.FullName;
     }
 
     [Benchmark]
     public void GenericComplexNestedNestedType_FullName()
     {
-        var name = this.genericComplexNestedNestedType.FullName;
+        var name = genericComplexNestedNestedType.FullName;
     }
 }

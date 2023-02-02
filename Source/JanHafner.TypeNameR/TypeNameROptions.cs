@@ -31,7 +31,7 @@ public sealed class TypeNameROptions
     /// <summary>
     /// Namespaces starting with values defined in this list are excluded from stacktraces, if enabled via <see cref="NameRControlFlags.ExcludeStackFrameMethodsByNamespace"/>.
     /// </summary>
-    public IEnumerable<string> ExcludedNamespaces { get; set; } = new string[]
+    public IEnumerable<string> ExcludedNamespaces { get; set; } = new []
     {
         "System."
     };
