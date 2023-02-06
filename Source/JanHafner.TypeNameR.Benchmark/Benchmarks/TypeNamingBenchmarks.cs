@@ -30,7 +30,7 @@ public class TypeNamingBenchmarks
         typeNameR = new();
     }
 
-    [Benchmark]
+    [Benchmark(Baseline = true)]
     public void SimpleType() => typeNameR.ExtractReadable(simpleType, true);
     
     [Benchmark]
@@ -39,10 +39,10 @@ public class TypeNamingBenchmarks
     [Benchmark]
     public void GenericSimpleType() => typeNameR.ExtractReadable(genericSimpleType, true);
 
-    [Benchmark(Baseline = true)]
+    [Benchmark]
     public void GenericComplexNestedNestedType() => typeNameR.ExtractReadable(genericComplexNestedNestedType, true);
     
-    [Benchmark(Baseline = true)]
+    [Benchmark]
     public void SimpleType_FullName()
     {
         var name = simpleType.FullName;

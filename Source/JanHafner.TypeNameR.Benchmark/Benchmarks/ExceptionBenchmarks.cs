@@ -32,8 +32,8 @@ public class ExceptionBenchmarks
         }
     }
 
-    [Benchmark(Baseline = true)]
-    public void RewriteExceptionStackTracesWithBen() => catchedException.Demystify();
+    // [Benchmark(Baseline = true)]
+    // public void RewriteExceptionStackTracesWithBen() => catchedException.Demystify();
 
     [Benchmark]
     public void RewriteExceptionStackTraces()
