@@ -2,7 +2,7 @@
 using BenchmarkDotNet.Jobs;
 using System.Reflection;
 
-namespace JanHafner.TypeNameR.Benchmark;
+namespace JanHafner.TypeNameR.Benchmark.Benchmarks;
 
 [MemoryDiagnoser]
 [SimpleJob(RuntimeMoniker.Net60, baseline: true)]

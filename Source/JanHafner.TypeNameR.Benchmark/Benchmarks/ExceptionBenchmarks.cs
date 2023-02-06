@@ -4,7 +4,7 @@ using JanHafner.TypeNameR.StackTrace;
 using System.Diagnostics;
 using System.IO.Abstractions;
 
-namespace JanHafner.TypeNameR.Benchmark;
+namespace JanHafner.TypeNameR.Benchmark.Benchmarks;
 
 [MemoryDiagnoser]
 [SimpleJob(RuntimeMoniker.Net60, baseline: true)]
@@ -15,7 +15,7 @@ public class ExceptionBenchmarks
     private Exception catchedException;
 
     private TypeNameR typeNameR;
-
+    
     [GlobalSetup]
     public async Task GlobalSetup()
     {
@@ -32,7 +32,7 @@ public class ExceptionBenchmarks
         }
     }
 
-    // [Benchmark(Baseline = true)]
+    [Benchmark(Baseline = true)]
     public void RewriteExceptionStackTracesWithBen() => catchedException.Demystify();
 
     [Benchmark]

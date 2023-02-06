@@ -10,10 +10,10 @@ internal static class TypeHelper
 {
     public static ReadOnlySpan<char> RemoveGenericParametersCount(this ReadOnlySpan<char> typeName)
     {
-        var lastIndexOfGenericParamterDelimiter = typeName.IndexOf(Symbol.GraveAccent);
-        if (lastIndexOfGenericParamterDelimiter > 0)
+        var lastIndexOfGenericParameterDelimiter = typeName.IndexOf(Symbol.GraveAccent);
+        if (lastIndexOfGenericParameterDelimiter > 0)
         {
-            return typeName[..lastIndexOfGenericParamterDelimiter];
+            return typeName[..lastIndexOfGenericParameterDelimiter];
         }
 
         return typeName;
