@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using System.IO.Abstractions;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 
@@ -8,51 +8,22 @@ namespace JanHafner.TypeNameR.StackTrace;
 public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
 {
     private readonly IPdbLocator pdbLocator;
-
-    private readonly IFileSystem fileSystem;
-
-    public StackFrameMetadataProvider(IPdbLocator pdbLocator, IFileSystem fileSystem)
+    
+    public StackFrameMetadataProvider(IPdbLocator pdbLocator)
     {
         this.pdbLocator = pdbLocator ?? throw new ArgumentNullException(nameof(pdbLocator));
-        this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
     }
 
-    public StackFrameMetadata? GetStackFrameMetadata(StackFrame stackFrame)
+    public StackFrameMetadata? ProvideStackFrameMetadata(StackFrame stackFrame, MethodBase method)
     {
-        if (stackFrame is null)
-        {
-            throw new ArgumentNullException(nameof(stackFrame));
-        }
-
-        var methodBase = stackFrame.GetMethod();
-        if (methodBase is null)
+        var ilOffset = stackFrame.GetILOffset();
+        if (ilOffset == StackFrame.OFFSET_UNKNOWN)
         {
             return null;
         }
 
-        var pdbLocation = pdbLocator.GetPdbLocation(methodBase.Module.Assembly.Location);
-        if (pdbLocation is null)
-        {
-            return null;
-        }
-
-        if (!fileSystem.File.Exists(pdbLocation))
-        {
-            return null;
-        }
-
-        using var pdbFileStream = fileSystem.FileStream.Create(pdbLocation, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-        using var metadataReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbFileStream);
-
-        var metadataReader = metadataReaderProvider.GetMetadataReader();
-        if (metadataReader is null)
-        {
-            return null;
-        }
-
-        var methodBaseMetadataTokenHandle = MetadataTokens.Handle(methodBase.MetadataToken);
-        if (methodBaseMetadataTokenHandle.IsNil || methodBaseMetadataTokenHandle.Kind != HandleKind.MethodDefinition)
+        var methodBaseMetadataTokenHandle = MetadataTokens.Handle(method.GetMetadataToken());
+        if (methodBaseMetadataTokenHandle.Kind != HandleKind.MethodDefinition || methodBaseMetadataTokenHandle.IsNil)
         {
             return null;
         }
@@ -62,6 +33,25 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
         {
             return null;
         }
+        
+        var pdbStream = pdbLocator.OpenLocatedPdb(method.Module.Assembly.Location);
+        if (pdbStream is null)
+        {
+            return null;
+        }
+
+        // According to benchmarks...
+        using var metadataReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream,
+#if NET6_0
+            // ...in .net 6 it reduced memory allocations
+            MetadataStreamOptions.Default
+#elif NET7_0_OR_GREATER
+            // ...but in .net 7/8 memory allocation and speed was reduced
+            MetadataStreamOptions.PrefetchMetadata
+#endif
+            );
+
+        var metadataReader = metadataReaderProvider.GetMetadataReader();
 
         var methodDebugInformation = metadataReader.GetMethodDebugInformation(debugInformationHandle);
         var sequencePoints = methodDebugInformation.GetSequencePoints().ToArray();
@@ -70,7 +60,6 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
             return null;
         }
 
-        var ilOffset = stackFrame.GetILOffset();
         var bestSequencePoint = FindBestSequencePoint(ilOffset, sequencePoints);
         if (!bestSequencePoint.HasValue)
         {
@@ -80,10 +69,14 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
         return CreateStackFrameMetadata(metadataReader, bestSequencePoint.Value);
     }
 
-    private static StackFrameMetadata CreateStackFrameMetadata(MetadataReader metadataReader, SequencePoint sequencePoint)
+    private static StackFrameMetadata? CreateStackFrameMetadata(MetadataReader metadataReader, SequencePoint sequencePoint)
     {
         var document = metadataReader.GetDocument(sequencePoint.Document);
         var fileName = metadataReader.GetString(document.Name);
+        if (fileName.Length == 0)
+        {
+            return null;
+        }
 
         var lineNumber = sequencePoint.StartLine;
         var columnNumber = sequencePoint.StartColumn;
@@ -91,7 +84,7 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
         return new StackFrameMetadata(fileName, lineNumber, columnNumber);
     }
 
-    private static SequencePoint? FindBestSequencePoint(int ilOffset, SequencePoint[] sequencePoints)
+    private static SequencePoint? FindBestSequencePoint(int ilOffset, ReadOnlySpan<SequencePoint> sequencePoints)
     {
         SequencePoint? bestSequencePoint = null;
         foreach (var sequencePoint in sequencePoints)

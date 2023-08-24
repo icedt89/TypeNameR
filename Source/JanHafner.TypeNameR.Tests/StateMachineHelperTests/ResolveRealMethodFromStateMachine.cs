@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
-using Moq;
+using JanHafner.TypeNameR.Helper;
+using NSubstitute;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Xunit;
@@ -12,245 +13,268 @@ public sealed class ResolveRealMethodFromStateMachine
     public void ReturnsNoneIfDeclaringTypeIsNull()
     {
         // Arrange
-        var methodInfoMock = new Mock<MethodInfo>();
-        methodInfoMock.Setup(mi => mi.DeclaringType)
-                      .Returns((Type?)null);
+        var methodInfoSubstitute = Substitute.For<MethodInfo>();
+        methodInfoSubstitute.DeclaringType.Returns((Type?)null);
+        // Necessary setup to fix fail on net 7 and above
+        methodInfoSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
 
         // Act
         MethodInfo? realMethodInfo = null;
-        var stateMachineType = methodInfoMock.Object.ResolveRealMethodFromStateMachine(out realMethodInfo);
+        var stateMachineType = methodInfoSubstitute.ResolveRealMethodFromStateMachine(out realMethodInfo);
 
         // Assert
         realMethodInfo.Should().BeNull();
-        stateMachineType.Should().Be(StateMachineTypes.None);
+        stateMachineType.Should().Be(StateMachineType.None);
     }
 
     [Fact]
     public void ReturnsNoneIfDeclaringTypeOfDeclaringTypeIsNull()
     {
         // Arrange
-        var declaringTypeMock = new Mock<Type>();
-        
-        var methodInfoMock = new Mock<MethodInfo>();
-        methodInfoMock.Setup(mi => mi.DeclaringType)
-                      .Returns(declaringTypeMock.Object);
+        var declaringTypeSubstitute = Substitute.For<Type>();
+
+        var methodInfoSubstitute = Substitute.For<MethodInfo>();
+        methodInfoSubstitute.DeclaringType.Returns(declaringTypeSubstitute);
+        // Necessary setup to fix fail on net 7 and above
+        methodInfoSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
 
         // Act
         MethodInfo? realMethodInfo = null;
-        var stateMachineType = methodInfoMock.Object.ResolveRealMethodFromStateMachine(out realMethodInfo);
+        var stateMachineType = methodInfoSubstitute.ResolveRealMethodFromStateMachine(out realMethodInfo);
 
         // Assert
         realMethodInfo.Should().BeNull();
-        stateMachineType.Should().Be(StateMachineTypes.None);
+        stateMachineType.Should().Be(StateMachineType.None);
     }
 
     [Fact]
     public void ReturnsNoneIfDeclaringTypeIsNotCompilerGenerated()
     {
         // Arrange
-        var declaringTypeOfDeclaringTypeMock = new Mock<Type>();
+        var declaringTypeOfDeclaringTypeSubstitute = Substitute.For<Type>();
 
-        var declaringTypeMock = new Mock<Type>();
-        declaringTypeMock.Setup(t => t.DeclaringType)
-                         .Returns(declaringTypeOfDeclaringTypeMock.Object);
-        declaringTypeMock.Setup(t => t.IsDefined(typeof(CompilerGeneratedAttribute), It.IsAny<bool>()))
-                         .Returns(false);
+        var declaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeSubstitute.DeclaringType.Returns(declaringTypeOfDeclaringTypeSubstitute);
+        declaringTypeSubstitute.IsDefined(typeof(CompilerGeneratedAttribute), Arg.Any<bool>()).Returns(false);
 
-        var methodInfoMock = new Mock<MethodInfo>();
-        methodInfoMock.Setup(mi => mi.DeclaringType)
-                      .Returns(declaringTypeMock.Object);
+        var methodInfoSubstitute = Substitute.For<MethodInfo>();
+        methodInfoSubstitute.DeclaringType.Returns(declaringTypeSubstitute);
+        // Necessary setup to fix fail on net 7 and above
+        methodInfoSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
 
         // Act
         MethodInfo? realMethodInfo = null;
-        var stateMachineType = methodInfoMock.Object.ResolveRealMethodFromStateMachine(out realMethodInfo);
+        var stateMachineType = methodInfoSubstitute.ResolveRealMethodFromStateMachine(out realMethodInfo);
 
         // Assert
         realMethodInfo.Should().BeNull();
-        stateMachineType.Should().Be(StateMachineTypes.None);
+        stateMachineType.Should().Be(StateMachineType.None);
     }
 
     [Fact]
     public void ReturnsNoneIfDeclaringTypeHasNoPossibleMethods()
     {
         // Arrange
-        var declaringTypeOfDeclaringTypeMock = new Mock<Type>();
+        var declaringTypeOfDeclaringTypeSubstitute = Substitute.For<Type>();
 
-        var declaringTypeMock = new Mock<Type>();
-        declaringTypeMock.Setup(t => t.DeclaringType)
-                         .Returns(declaringTypeOfDeclaringTypeMock.Object);
-        declaringTypeMock.Setup(t => t.IsDefined(typeof(CompilerGeneratedAttribute), It.IsAny<bool>()))
-                         .Returns(true);
+        var declaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeSubstitute.DeclaringType.Returns(declaringTypeOfDeclaringTypeSubstitute);
+        declaringTypeSubstitute.IsDefined(typeof(CompilerGeneratedAttribute), Arg.Any<bool>()).Returns(true);
 
-        var methodInfoMock = new Mock<MethodInfo>();
-        methodInfoMock.Setup(mi => mi.DeclaringType)
-                      .Returns(declaringTypeMock.Object);
+        var methodInfoSubstitute = Substitute.For<MethodInfo>();
+        methodInfoSubstitute.DeclaringType.Returns(declaringTypeSubstitute);
+        // Necessary setup to fix fail on net 7 and above
+        methodInfoSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
 
         // Act
         MethodInfo? realMethodInfo = null;
-        var stateMachineType = methodInfoMock.Object.ResolveRealMethodFromStateMachine(out realMethodInfo);
+        var stateMachineType = methodInfoSubstitute.ResolveRealMethodFromStateMachine(out realMethodInfo);
 
         // Assert
         realMethodInfo.Should().BeNull();
-        stateMachineType.Should().Be(StateMachineTypes.None);
+        stateMachineType.Should().Be(StateMachineType.None);
     }
 
     [Fact]
     public void ReturnsNoneIfNoPossibleMethodWasFound()
     {
         // Arrange
-        var declaringTypeOfDeclaringTypeMock = new Mock<Type>();
-        declaringTypeOfDeclaringTypeMock.Setup(t => t.GetMethods(BindingFlags.Public
-                                                               | BindingFlags.NonPublic
-                                                               | BindingFlags.Static
-                                                               | BindingFlags.Instance
-                                                               | BindingFlags.DeclaredOnly))
-                                        .Returns(new[]
-                                        {
-                                            new Mock<MethodInfo>().Object
-                                        });
+        var possibleMethodSubstitute = Substitute.For<MethodInfo>();
+        // Necessary setup to fix fail on net 7 and above
+        possibleMethodSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
 
-        var declaringTypeMock = new Mock<Type>();
-        declaringTypeMock.Setup(t => t.DeclaringType)
-                         .Returns(declaringTypeOfDeclaringTypeMock.Object);
-        declaringTypeMock.Setup(t => t.IsDefined(typeof(CompilerGeneratedAttribute), It.IsAny<bool>()))
-                         .Returns(true);
+        var declaringTypeOfDeclaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeOfDeclaringTypeSubstitute.GetMethods(BindingFlags.Public
+                                                          | BindingFlags.NonPublic
+                                                          | BindingFlags.Static
+                                                          | BindingFlags.Instance
+                                                          | BindingFlags.DeclaredOnly)
+            .Returns(new[] { possibleMethodSubstitute });
 
-        var methodInfoMock = new Mock<MethodInfo>();
-        methodInfoMock.Setup(mi => mi.DeclaringType)
-                      .Returns(declaringTypeMock.Object);
+        var declaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeSubstitute.DeclaringType.Returns(declaringTypeOfDeclaringTypeSubstitute);
+        declaringTypeSubstitute.IsDefined(typeof(CompilerGeneratedAttribute), Arg.Any<bool>()).Returns(true);
+
+        var methodInfoSubstitute = Substitute.For<MethodInfo>();
+        methodInfoSubstitute.DeclaringType.Returns(declaringTypeSubstitute);
+        // Necessary setup to fix fail on net 7 and above
+        methodInfoSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
 
         // Act
         MethodInfo? realMethodInfo = null;
-        var stateMachineType = methodInfoMock.Object.ResolveRealMethodFromStateMachine(out realMethodInfo);
+        var stateMachineType = methodInfoSubstitute.ResolveRealMethodFromStateMachine(out realMethodInfo);
 
         // Assert
         realMethodInfo.Should().BeNull();
-        stateMachineType.Should().Be(StateMachineTypes.None);
+        stateMachineType.Should().Be(StateMachineType.None);
     }
 
     [Fact]
     public void ReturnsAsyncStateMachine()
     {
         // Arrange
-        var declaringTypeMock = new Mock<Type>();
-        declaringTypeMock.Setup(t => t.IsDefined(typeof(CompilerGeneratedAttribute), It.IsAny<bool>()))
-                         .Returns(true);
+        var declaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeSubstitute.IsDefined(typeof(CompilerGeneratedAttribute), Arg.Any<bool>())
+            .Returns(true);
 
-        var possibleMethodMock = new Mock<MethodInfo>();
-        possibleMethodMock.Setup(m => m.GetCustomAttributes(typeof(AsyncStateMachineAttribute), It.IsAny<bool>()))
-                          .Returns(new[]
-                          {
-                              new AsyncStateMachineAttribute(declaringTypeMock.Object)
-                          });
+        var possibleMethodSubstitute = Substitute.For<MethodInfo>();
+        possibleMethodSubstitute.GetCustomAttributes(typeof(StateMachineAttribute), false)
+            .Returns(new[] { new AsyncStateMachineAttribute(declaringTypeSubstitute) });
 
-        var declaringTypeOfDeclaringTypeMock = new Mock<Type>();
-        declaringTypeOfDeclaringTypeMock.Setup(t => t.GetMethods(BindingFlags.Public
-                                                               | BindingFlags.NonPublic
-                                                               | BindingFlags.Static
-                                                               | BindingFlags.Instance
-                                                               | BindingFlags.DeclaredOnly))
-                                        .Returns(new[]
-                                        {
-                                            possibleMethodMock.Object
-                                        });
+        var declaringTypeOfDeclaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeOfDeclaringTypeSubstitute.GetMethods(BindingFlags.Public
+                                                          | BindingFlags.NonPublic
+                                                          | BindingFlags.Static
+                                                          | BindingFlags.Instance
+                                                          | BindingFlags.DeclaredOnly)
+            .Returns(new[] { possibleMethodSubstitute });
 
-        declaringTypeMock.Setup(t => t.DeclaringType)
-                         .Returns(declaringTypeOfDeclaringTypeMock.Object);
+        declaringTypeSubstitute.DeclaringType.Returns(declaringTypeOfDeclaringTypeSubstitute);
 
-        var methodInfoMock = new Mock<MethodInfo>();
-        methodInfoMock.Setup(mi => mi.DeclaringType)
-                      .Returns(declaringTypeMock.Object);
+        var methodInfoSubstitute = Substitute.For<MethodInfo>();
+        methodInfoSubstitute.DeclaringType.Returns(declaringTypeSubstitute);
+        // Necessary setup to fix fail on net 7 and above
+        methodInfoSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
 
         // Act
         MethodInfo? realMethodInfo = null;
-        var stateMachineType = methodInfoMock.Object.ResolveRealMethodFromStateMachine(out realMethodInfo);
+        var stateMachineType = methodInfoSubstitute.ResolveRealMethodFromStateMachine(out realMethodInfo);
 
         // Assert
-        realMethodInfo.Should().BeSameAs(possibleMethodMock.Object);
-        stateMachineType.Should().Be(StateMachineTypes.Async);
+        realMethodInfo.Should().BeSameAs(possibleMethodSubstitute);
+        stateMachineType.Should().Be(StateMachineType.Async);
     }
 
     [Fact]
     public void ReturnsIteratorStateMachine()
     {
         // Arrange
-        var declaringTypeMock = new Mock<Type>();
-        declaringTypeMock.Setup(t => t.IsDefined(typeof(CompilerGeneratedAttribute), It.IsAny<bool>()))
-                         .Returns(true);
+        var declaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeSubstitute.IsDefined(typeof(CompilerGeneratedAttribute), Arg.Any<bool>())
+            .Returns(true);
 
-        var possibleMethodMock = new Mock<MethodInfo>();
-        possibleMethodMock.Setup(m => m.GetCustomAttributes(typeof(IteratorStateMachineAttribute), It.IsAny<bool>()))
-                          .Returns(new[]
-                          {
-                              new IteratorStateMachineAttribute(declaringTypeMock.Object)
-                          });
+        var possibleMethodSubstitute = Substitute.For<MethodInfo>();
+        // Necessary setup to fix fail on net 7 and above
+        possibleMethodSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
+        // Necessary setup for test
+        possibleMethodSubstitute.GetCustomAttributes(typeof(StateMachineAttribute), false)
+            .Returns(new[] { new IteratorStateMachineAttribute(declaringTypeSubstitute) });
 
-        var declaringTypeOfDeclaringTypeMock = new Mock<Type>();
-        declaringTypeOfDeclaringTypeMock.Setup(t => t.GetMethods(BindingFlags.Public
-                                                               | BindingFlags.NonPublic
-                                                               | BindingFlags.Static
-                                                               | BindingFlags.Instance
-                                                               | BindingFlags.DeclaredOnly))
-                                        .Returns(new[]
-                                        {
-                                            possibleMethodMock.Object
-                                        });
+        var declaringTypeOfDeclaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeOfDeclaringTypeSubstitute.GetMethods(BindingFlags.Public
+                                                          | BindingFlags.NonPublic
+                                                          | BindingFlags.Static
+                                                          | BindingFlags.Instance
+                                                          | BindingFlags.DeclaredOnly)
+            .Returns(new[] { possibleMethodSubstitute });
 
-        declaringTypeMock.Setup(t => t.DeclaringType)
-                         .Returns(declaringTypeOfDeclaringTypeMock.Object);
+        declaringTypeSubstitute.DeclaringType.Returns(declaringTypeOfDeclaringTypeSubstitute);
 
-        var methodInfoMock = new Mock<MethodInfo>();
-        methodInfoMock.Setup(mi => mi.DeclaringType)
-                      .Returns(declaringTypeMock.Object);
+        var methodInfoSubstitute = Substitute.For<MethodInfo>();
+        methodInfoSubstitute.DeclaringType.Returns(declaringTypeSubstitute);
+        // Necessary setup to fix fail on net 7 and above
+        methodInfoSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
 
         // Act
         MethodInfo? realMethodInfo = null;
-        var stateMachineType = methodInfoMock.Object.ResolveRealMethodFromStateMachine(out realMethodInfo);
+        var stateMachineType = methodInfoSubstitute.ResolveRealMethodFromStateMachine(out realMethodInfo);
 
         // Assert
-        realMethodInfo.Should().BeSameAs(possibleMethodMock.Object);
-        stateMachineType.Should().Be(StateMachineTypes.Iterator);
+        realMethodInfo.Should().BeSameAs(possibleMethodSubstitute);
+        stateMachineType.Should().Be(StateMachineType.Iterator);
     }
 
     [Fact]
     public void ReturnsAsyncIteratorStateMachine()
     {
         // Arrange
-        var declaringTypeMock = new Mock<Type>();
-        declaringTypeMock.Setup(t => t.IsDefined(typeof(CompilerGeneratedAttribute), It.IsAny<bool>()))
-                         .Returns(true);
+        var declaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeSubstitute.IsDefined(typeof(CompilerGeneratedAttribute), Arg.Any<bool>()).Returns(true);
 
-        var possibleMethodMock = new Mock<MethodInfo>();
-        possibleMethodMock.Setup(m => m.GetCustomAttributes(typeof(AsyncIteratorStateMachineAttribute), It.IsAny<bool>()))
-                          .Returns(new[]
-                          {
-                              new AsyncIteratorStateMachineAttribute(declaringTypeMock.Object)
-                          });
+        var possibleMethodSubstitute = Substitute.For<MethodInfo>();
+        // Necessary setup to fix fail on net 7 and above
+        possibleMethodSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
+        // Necessary setup for test
+        possibleMethodSubstitute.GetCustomAttributes(typeof(StateMachineAttribute), false)
+            .Returns(new[] { new AsyncIteratorStateMachineAttribute(declaringTypeSubstitute) });
 
-        var declaringTypeOfDeclaringTypeMock = new Mock<Type>();
-        declaringTypeOfDeclaringTypeMock.Setup(t => t.GetMethods(BindingFlags.Public
-                                                               | BindingFlags.NonPublic
-                                                               | BindingFlags.Static
-                                                               | BindingFlags.Instance
-                                                               | BindingFlags.DeclaredOnly))
-                                        .Returns(new[]
-                                        {
-                                            possibleMethodMock.Object
-                                        });
+        var declaringTypeOfDeclaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeOfDeclaringTypeSubstitute.GetMethods(BindingFlags.Public
+                                                          | BindingFlags.NonPublic
+                                                          | BindingFlags.Static
+                                                          | BindingFlags.Instance
+                                                          | BindingFlags.DeclaredOnly)
+            .Returns(new[] { possibleMethodSubstitute });
 
-        declaringTypeMock.Setup(t => t.DeclaringType)
-                         .Returns(declaringTypeOfDeclaringTypeMock.Object);
+        declaringTypeSubstitute.DeclaringType.Returns(declaringTypeOfDeclaringTypeSubstitute);
 
-        var methodInfoMock = new Mock<MethodInfo>();
-        methodInfoMock.Setup(mi => mi.DeclaringType)
-                      .Returns(declaringTypeMock.Object);
+        var methodInfoSubstitute = Substitute.For<MethodInfo>();
+        methodInfoSubstitute.DeclaringType.Returns(declaringTypeSubstitute);
+        // Necessary setup to fix fail on net 7 and above
+        methodInfoSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
 
         // Act
         MethodInfo? realMethodInfo = null;
-        var stateMachineType = methodInfoMock.Object.ResolveRealMethodFromStateMachine(out realMethodInfo);
+        var stateMachineType = methodInfoSubstitute.ResolveRealMethodFromStateMachine(out realMethodInfo);
 
         // Assert
-        realMethodInfo.Should().BeSameAs(possibleMethodMock.Object);
-        stateMachineType.Should().Be(StateMachineTypes.AsyncIterator);
+        realMethodInfo.Should().BeSameAs(possibleMethodSubstitute);
+        stateMachineType.Should().Be(StateMachineType.AsyncIterator);
+    }
+
+    [Fact]
+    public void ThrowsExceptionOnUnknownStateMachineAttribute()
+    {
+        // Arrange
+        var declaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeSubstitute.IsDefined(typeof(CompilerGeneratedAttribute), Arg.Any<bool>()).Returns(true);
+
+        var unknownStateMachineAttributeSubstitute = Substitute.For<StateMachineAttribute>(declaringTypeSubstitute);
+
+        var possibleMethodSubstitute = Substitute.For<MethodInfo>();
+        // Necessary setup to fix fail on net 7 and above
+        possibleMethodSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
+        // Necessary setup for test
+        possibleMethodSubstitute.GetCustomAttributes(typeof(StateMachineAttribute), false)
+            .Returns(new[] { unknownStateMachineAttributeSubstitute });
+
+        var declaringTypeOfDeclaringTypeSubstitute = Substitute.For<Type>();
+        declaringTypeOfDeclaringTypeSubstitute.GetMethods(BindingFlags.Public
+                                                          | BindingFlags.NonPublic
+                                                          | BindingFlags.Static
+                                                          | BindingFlags.Instance
+                                                          | BindingFlags.DeclaredOnly)
+            .Returns(new[] { possibleMethodSubstitute });
+
+        declaringTypeSubstitute.DeclaringType.Returns(declaringTypeOfDeclaringTypeSubstitute);
+
+        var methodInfoSubstitute = Substitute.For<MethodInfo>();
+        methodInfoSubstitute.DeclaringType.Returns(declaringTypeSubstitute);
+        // Necessary setup to fix fail on net 7 and above
+        methodInfoSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
+
+        // Act, Assert
+        var exception = Assert.Throws<InvalidOperationException>(() => methodInfoSubstitute.ResolveRealMethodFromStateMachine(out _));
+        exception.Message.Should().StartWith("Unknown");
     }
 }

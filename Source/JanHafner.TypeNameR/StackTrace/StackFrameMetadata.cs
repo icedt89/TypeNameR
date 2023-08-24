@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace JanHafner.TypeNameR.StackTrace;
 
@@ -6,15 +7,11 @@ namespace JanHafner.TypeNameR.StackTrace;
 /// Contains source information from a <see cref="StackFrame"/>.
 /// </summary>
 [DebuggerDisplay("{FileName}:{LineNumber}:{ColumnNumber}")]
+[ExcludeFromCodeCoverage]
 public readonly struct StackFrameMetadata : IEquatable<StackFrameMetadata>
 {
     public StackFrameMetadata(string fileName, int lineNumber, int columnNumber)
     {
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            throw new ArgumentException($"'{nameof(fileName)}' cannot be null or whitespace.", nameof(fileName));
-        }
-        
         FileName = fileName;
         LineNumber = lineNumber;
         ColumnNumber = columnNumber;

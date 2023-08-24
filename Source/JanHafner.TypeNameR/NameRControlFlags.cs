@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using JanHafner.TypeNameR.StackTrace;
+using System.Diagnostics;
 
 namespace JanHafner.TypeNameR;
 
@@ -14,7 +15,7 @@ public enum NameRControlFlags
     None = 0,
 
     /// <summary>
-    /// Includes the access modifier, eg <see langword="public"/> or <see langword="private"/>
+    /// Includes the access modifier,  <see langword="public"/> or <see langword="private"/>.
     /// </summary>
     IncludeAccessModifier = 1,
 
@@ -39,27 +40,27 @@ public enum NameRControlFlags
     IncludeGenericParameters = 16,
 
     /// <summary>
-    /// Includes parameter modifier, eg <see langword="ref"/>, <see langword="in"/>, <see langword="out"/> or <see langword="this"/> (for extension methods).
+    /// Includes parameter prefix, <see langword="ref"/>, <see langword="in"/>, <see langword="out"/>, <see langword="params"/> and <see langword="this"/>.
     /// </summary>
-    IncludeParameterModifiers = 32,
+    IncludeParameterPrefix = 32,
 
     /// <summary>
-    /// Includes the default value, eg <see langword="default"/> or a constant value.
+    /// Includes the default value, <see langword="default"/> or a constant value.
     /// </summary>
     IncludeParameterDefaultValue = 64,
 
     /// <summary>
     /// Prepends the readable name of the <see cref="Type"/> containing the method.
     /// </summary>
-    IncludeFullTypeName = 128,
+    PrependFullTypeName = 128,
 
     /// <summary>
-    /// Include hidden stackframes.
+    /// Include hidden stack frames.
     /// </summary>
     IncludeHiddenStackFrames = 256,
 
     /// <summary>
-    /// Includes information about the source of the <see cref="StackFrame"/> eg. file, line number and column.
+    /// Includes information about the source of the <see cref="StackFrame"/>, file name, line number and column.
     /// </summary>
     IncludeSourceInformation = 512,
 
@@ -74,15 +75,30 @@ public enum NameRControlFlags
     StoreOriginalStackTraceInExceptionData = 2048,
 
     /// <summary>
-    /// Include the <see langword="this"/> keyword to mark the <see langword="this"/> parameter of an extension method.
-    /// </summary>
-    IncludeThisKeywordForExtensions = 4096,
-
-    /// <summary>
-    /// Exclude namespaces of stackframes defined in <see cref="TypeNameROptions.ExcludedNamespaces"/>.
+    /// Exclude namespaces of declaring methods of stack frames starting with <see cref="TypeNameROptions.ExcludedNamespaces"/>.
     /// </summary>
     ExcludeStackFrameMethodsByNamespace = 8192,
-
+    
+    /// <summary>
+    /// Includes <see langword="params"/> keyword for arrays.
+    /// </summary>
+    IncludeParamsKeyword = 16384,
+    
+    /// <summary>
+    /// Includes <see langword="this"/> keyword for extension methods.
+    /// </summary>
+    IncludeThisKeyword = 32768,
+    
+    /// <summary>
+    /// Falls back to the <see cref="IStackFrameMetadataProvider"/> if source information is not present at the <see cref="StackFrame"/>.
+    /// </summary>
+    FallbackToStackFrameMetadataProvider = 65536,
+    
+    /// <summary>
+    /// Includes nullability info of type parameters (generics too), this will not affect display of nullable types (<see cref="Nullable{T}"/>).
+    /// </summary>
+    IncludeNullabilityInfo = 131072,
+    
     /// <summary>
     /// Shortcut for all flags.
     /// </summary>
@@ -91,13 +107,16 @@ public enum NameRControlFlags
         | IncludeAsyncModifier
         | IncludeReturnParameter
         | IncludeGenericParameters
-        | IncludeParameterModifiers
+        | IncludeParameterPrefix
         | IncludeParameterDefaultValue
-        | IncludeFullTypeName
+        | PrependFullTypeName
         | IncludeHiddenStackFrames
         | IncludeSourceInformation
         | IncludeInnerExceptions
         | StoreOriginalStackTraceInExceptionData
-        | IncludeThisKeywordForExtensions
-        | ExcludeStackFrameMethodsByNamespace,
+        | ExcludeStackFrameMethodsByNamespace
+        | IncludeParamsKeyword
+        | IncludeThisKeyword
+        | FallbackToStackFrameMetadataProvider
+        | IncludeNullabilityInfo,
 }

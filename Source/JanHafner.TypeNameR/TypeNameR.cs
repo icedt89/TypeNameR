@@ -1,224 +1,170 @@
-﻿using JanHafner.TypeNameR.StackTrace;
+﻿using JanHafner.TypeNameR.Exceptions;
+using JanHafner.TypeNameR.Helper;
+using JanHafner.TypeNameR.StackTrace;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
+
+#if NET6_0
+using NullabilityInfoContext = Nullability.NullabilityInfoContextEx;
+using NullabilityInfo = Nullability.NullabilityInfoEx;
+using NullabilityState = Nullability.NullabilityStateEx;
+#endif
 
 namespace JanHafner.TypeNameR;
 
 public sealed class TypeNameR : ITypeNameR
 {
-    private readonly IStackFrameMetadataProvider stackFrameMetadataProvider;
+    private readonly IStackFrameMetadataProvider? stackFrameMetadataProvider;
 
     private readonly TypeNameROptions typeNameROptions;
 
-    private const uint DefaultCallDepth = 1;
+    private readonly NullabilityInfoContext nullabilityInfoContext;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="JanHafner.TypeNameR"/> class with the supplied <see cref="TypeNameROptions"/>.
     /// </summary>
-    /// <param name="stackFrameMetadataProvider">If set to <see langword="null"/>, a new instance of <see cref="NullStackFrameMetadataProvider"/> will be used.</param>
+    /// <param name="stackFrameMetadataProvider">Implementation that is used to retrieve <see cref="StackFrameMetadata"/> for <see cref="StackFrame"/>.</param>
     /// <param name="typeNameROptions">If set to <see langword="null"/>, a new instance initialized with the default values will be used internally.</param>
     public TypeNameR(IStackFrameMetadataProvider? stackFrameMetadataProvider = null,
                      TypeNameROptions? typeNameROptions = null)
     {
-        this.stackFrameMetadataProvider = stackFrameMetadataProvider ?? new NullStackFrameMetadataProvider();
+        this.stackFrameMetadataProvider = stackFrameMetadataProvider;
         this.typeNameROptions = typeNameROptions ?? new TypeNameROptions();
+        nullabilityInfoContext = new NullabilityInfoContext();
     }
 
     #region Type specific
 
     /// <inheritdoc />
-    public string ExtractReadable(Type type, bool fullTypename)
+    public string GenerateDisplay(Type type, bool fullTypeName, NullabilityInfo? nullabilityInfo)
     {
-        if (type is null)
-        {
-            throw new ArgumentNullException(nameof(type));
-        }
+        ArgumentNullException.ThrowIfNull(type);
 
         var stringBuilder = new StringBuilder();
 
-        ProcessTypeCore(stringBuilder, type, fullTypename, null);
+        ProcessTypeCore(stringBuilder, type, fullTypeName, nullabilityInfo);
     
         return stringBuilder.ToString();
     }
 
-    private void ProcessTypeCore(StringBuilder stringBuilder, Type type, bool isInNestedContext, NullabilityInfo? nullabilityInfo)
+    private void ProcessTypeCore(StringBuilder stringBuilder, Type type, bool fullTypeName, NullabilityInfo? nullabilityInfo)
     {
-        if (TryProcessNullableType(stringBuilder, type, isInNestedContext, nullabilityInfo))
+        var skipTypeAndGenericsAndNullable = false;
+        if (typeNameROptions.PredefinedTypeNames.TryGetValue(type, out var predefinedTypeName))
+        {
+            stringBuilder.Append(predefinedTypeName);
+
+            skipTypeAndGenericsAndNullable = true;
+        }
+        else
+        {
+            var elementType = type.GetElementType();
+            if (elementType is not null)
+            {
+                if (type.IsArray)
+                {
+                    ProcessTypeCore(stringBuilder, elementType, fullTypeName, nullabilityInfo?.ElementType);
+        
+                    stringBuilder.Append(Constants.LeftSquareBracket)
+                        .Append(Constants.Comma, type.GetArrayRank() - 1)
+                        .Append(Constants.RightSquareBracket);
+        
+                    skipTypeAndGenericsAndNullable = true;
+                }
+                else
+                {
+                    ProcessTypeCore(stringBuilder, elementType, fullTypeName, nullabilityInfo);
+
+                    if (type.IsPointer)
+                    {
+                        stringBuilder.Append(Constants.Asterisk);
+                    }
+                
+                    skipTypeAndGenericsAndNullable = true;
+                }                
+            }
+        }
+
+        var nullableUnderlyingType = Nullable.GetUnderlyingType(type);
+        if (!skipTypeAndGenericsAndNullable && nullableUnderlyingType is not null)
+        {
+            ProcessTypeCore(stringBuilder, nullableUnderlyingType, fullTypeName, null);
+            
+            stringBuilder.Append(Constants.QuestionMark);
+
+            return;
+        }
+
+        if (!skipTypeAndGenericsAndNullable)
+        {
+            // Nested
+            if (type.DeclaringType is not null && !type.IsGenericParameter)
+            {
+                ProcessTypeCore(stringBuilder, type.DeclaringType, true, null);
+
+                stringBuilder.Append(Constants.Plus);
+            }
+            
+            // Full type name
+            if (fullTypeName && type.DeclaringType is null && type.Namespace is not null)
+            {
+                stringBuilder.Append(type.Namespace)
+                    .Append(Constants.FullStop);
+            }
+
+            var typeNameSpan = type.Name.AsSpan();
+            if (type.IsGenericType)
+            {
+                stringBuilder.Append(typeNameSpan.RemoveGenericParametersCount());
+
+                ProcessGenerics(stringBuilder, type.GetGenericArguments(), nullabilityInfo?.GenericTypeArguments);
+            }
+            else
+            {
+                stringBuilder.Append(typeNameSpan);
+            }
+        }
+        
+        if (nullableUnderlyingType is not null || nullabilityInfo?.ReadState != NullabilityState.Nullable)
         {
             return;
         }
 
-        if (TryProcessPredefinedType(stringBuilder, type))
+        var compareType = nullabilityInfo.Type;
+        if (nullabilityInfo.Type.IsByRef || nullabilityInfo.Type.IsPointer)
         {
-            return;
+            compareType = nullabilityInfo.Type.GetElementType();
         }
 
-        if (TryProcessArrayType(stringBuilder, type, isInNestedContext, nullabilityInfo))
+        if (type == compareType)
         {
-            return;
+            stringBuilder.Append(Constants.QuestionMark);
         }
-
-        if (TryProcessPointerType(stringBuilder, type, nullabilityInfo))
-        {
-            return;
-        }
-
-        if (TryProcessByRefType(stringBuilder, type, nullabilityInfo))
-        {
-            return;
-        }
-
-        ProcessNested(stringBuilder, type);
-
-        ReadOnlySpan<char> readableTypeName = isInNestedContext && type.DeclaringType is null 
-            ? type.FullName ?? type.Name
-            : type.Name;
-
-        stringBuilder.Append(readableTypeName.RemoveGenericParametersCount());
-
-        ProcessGenerics(stringBuilder, type.GetGenericArguments(), nullabilityInfo?.GenericTypeArguments);
-    }
-
-    // private static void ProcessTypeName(StringBuilder stringBuilder, Type type, bool isInNestedContext)
-    // {
-    //     // IsInNestedContext umbenennen zu UseFullTypeName, Auswertung des Parameters an Aufrufer delegieren.
-    //     // throw new NotImplementedException();
-    //     ReadOnlySpan<char> readableTypeName = isInNestedContext && type.DeclaringType is null
-    //                                ? type.FullName ?? type.Name
-    //                                : type.Name;
-    //
-    //     stringBuilder.Append(readableTypeName.RemoveGenericParametersCount());
-    // }
-
-    private bool TryProcessPredefinedType(StringBuilder stringBuilder, Type type)
-    {
-        if (!typeNameROptions.PredefinedTypeNames.TryGetValue(type, out var readablePrimitiveTypeName1))
-        {
-            return false;
-        }
-
-        stringBuilder.Append(readablePrimitiveTypeName1);
-
-        return true;
-    }
-
-    private bool TryProcessArrayType(StringBuilder stringBuilder, Type type, bool isInNestedContext, NullabilityInfo? nullabilityInfo)
-    {
-        if (!type.IsArray)
-        {
-            return false;
-        }
-
-        var elementType = type.GetElementType()!;
-
-        ProcessTypeCore(stringBuilder, elementType, isInNestedContext, nullabilityInfo);
-
-        stringBuilder.Append(Symbol.LeftSquareBracket);
-
-        if (type.IsVariableBoundArray)
-        {
-            var arrayRank = type.GetArrayRank();
-
-            stringBuilder.Append(Symbol.Comma, arrayRank - 1);
-        }
-
-        stringBuilder.Append(Symbol.RightSquareBracket);
-
-        return true;
-    }
-
-    private bool TryProcessPointerType(StringBuilder stringBuilder, Type type, NullabilityInfo? nullabilityInfo)
-    {
-        if (!type.IsPointer)
-        {
-            return false;
-        }
-
-        var elementType = type.GetElementType()!;
-
-        ProcessTypeCore(stringBuilder, elementType, false, nullabilityInfo?.ElementType);
-
-        stringBuilder.Append(Symbol.Asterisk);
-
-        return true;
-    }
-
-    private bool TryProcessByRefType(StringBuilder stringBuilder, Type type, NullabilityInfo? nullabilityInfo)
-    {
-        if (!type.IsByRef)
-        {
-            return false;
-        }
-
-        var elementType = type.GetElementType()!;
-
-        ProcessTypeCore(stringBuilder, elementType, false, nullabilityInfo?.ElementType);
-
-        return true;
-    }
-
-    private bool TryProcessNullableType(StringBuilder stringBuilder, Type type, bool isInNestedContext, NullabilityInfo? nullabilityInfo)
-    {
-        if (type.IsNullableStruct(out var underlyingType))
-        {
-            ProcessTypeCore(stringBuilder, underlyingType, isInNestedContext, null);
-
-            stringBuilder.Append(Symbol.QuestionMark);
-
-            return true;
-        }
-
-        if (nullabilityInfo is not null && nullabilityInfo.Type == type && nullabilityInfo.IsNullableReferenceType())
-        {
-            ProcessTypeCore(stringBuilder, type, isInNestedContext, nullabilityInfo.ElementType);
-
-            stringBuilder.Append(Symbol.QuestionMark);
-
-            return true;
-        }
-
-        return false;
     }
 
     private void ProcessGenerics(StringBuilder stringBuilder, Type[] genericTypes, NullabilityInfo[]? genericTypesNullability)
     {
-        if (genericTypes.Length == 0)
-        {
-            return;
-        }
+        stringBuilder.Append(Constants.LessThanSign);
 
-        stringBuilder.Append(Symbol.LessThanSign);
-
-        for (var i = 0; i < genericTypes.Length; i++)
+        for (var genericParameterIndex = 0; genericParameterIndex < genericTypes.Length; genericParameterIndex++)
         {
             NullabilityInfo? genericTypeNullabilityInfo = null;
-            if (genericTypesNullability is not null && i < genericTypesNullability.Length)
+            if (genericTypesNullability is not null && genericParameterIndex < genericTypesNullability.Length)
             {
-                genericTypeNullabilityInfo = genericTypesNullability[i];
+                genericTypeNullabilityInfo = genericTypesNullability[genericParameterIndex];
             }
 
-            ProcessTypeCore(stringBuilder, genericTypes[i], false, genericTypeNullabilityInfo);
+            ProcessTypeCore(stringBuilder, genericTypes[genericParameterIndex], false, genericTypeNullabilityInfo);
 
-            if (i < genericTypes.Length - 1)
+            if (genericParameterIndex < genericTypes.Length - 1)
             {
-                stringBuilder.Append(Symbol.CommaWithEndingSpace);
+                stringBuilder.Append(Constants.CommaWithEndingSpace);
             }
         }
 
-        stringBuilder.Append(Symbol.GreaterThanSign);
-    }
-    
-    private void ProcessNested(StringBuilder stringBuilder, Type type)
-    {
-        if (!type.IsNested || type.IsGenericParameter || type.DeclaringType is null)
-        {
-            return;
-        }
-
-        ProcessTypeCore(stringBuilder, type.DeclaringType, true, null);
-
-        stringBuilder.Append(Symbol.Plus);
+        stringBuilder.Append(Constants.GreaterThanSign);
     }
 
     #endregion
@@ -226,27 +172,21 @@ public sealed class TypeNameR : ITypeNameR
     #region Method specific
 
     /// <inheritdoc />
-    public string ExtractReadable(MethodBase methodBase, NameRControlFlags nameRControlFlags)
+    public string GenerateDisplay(MethodBase methodBase, NameRControlFlags nameRControlFlags)
     {
-        if (methodBase is null)
-        {
-            throw new ArgumentNullException(nameof(methodBase));
-        }
+        ArgumentNullException.ThrowIfNull(methodBase);
 
         var stringBuilder = new StringBuilder();
 
-        ProcessMethod(stringBuilder, methodBase, StateMachineTypes.None, nameRControlFlags);
+        ProcessMethod(stringBuilder, methodBase, nameRControlFlags, out _);
 
         return stringBuilder.ToString();
     }
 
     /// <inheritdoc />
-    public string ExtractReadable(ParameterInfo parameterInfo, NameRControlFlags nameRControlFlags)
+    public string GenerateDisplay(ParameterInfo parameterInfo, NameRControlFlags nameRControlFlags)
     {
-        if (parameterInfo is null)
-        {
-            throw new ArgumentNullException(nameof(parameterInfo));
-        }
+        ArgumentNullException.ThrowIfNull(parameterInfo);
 
         var stringBuilder = new StringBuilder();
 
@@ -255,119 +195,140 @@ public sealed class TypeNameR : ITypeNameR
         return stringBuilder.ToString();
     }
 
-    private void ProcessMethod(StringBuilder stringBuilder, MethodBase methodBase, StateMachineTypes stateMachineType, NameRControlFlags nameRControlFlags)
+    private void ProcessMethod(StringBuilder stringBuilder, MethodBase methodBase, NameRControlFlags nameRControlFlags, out StateMachineType stateMachineType)
     {
-        ProcessMethodModifier(stringBuilder, methodBase, stateMachineType, nameRControlFlags);
-
-        // Otherwise it is a constructor
-        var asMethodInfo = methodBase as MethodInfo;
-        if (asMethodInfo is not null && nameRControlFlags.HasFlag(NameRControlFlags.IncludeReturnParameter))
+        switch (methodBase)
         {
-            ProcessParameter(stringBuilder, asMethodInfo.ReturnParameter, nameRControlFlags);
+            case MethodInfo method:
+                stateMachineType = method.ResolveRealMethodFromStateMachine(out var realMethodInfo);
 
-            stringBuilder.Append(Symbol.Space);
-        }
-
-        if (methodBase.DeclaringType is not null && nameRControlFlags.HasFlag(NameRControlFlags.IncludeFullTypeName))
-        {
-            stringBuilder.Append(methodBase.DeclaringType.Namespace)
-                         .Append(Symbol.FullStop);
-            
-            ProcessTypeCore(stringBuilder, methodBase.DeclaringType, false, null);
-            
-            stringBuilder.Append(Symbol.FullStop);
-        }
-
-        if (asMethodInfo is not null)
-        {
-            stringBuilder.Append(methodBase.Name);
-        }
-        else if(methodBase.IsStatic)
-        {
-            stringBuilder.Append(Symbol.StaticConstructor);
-        }
-        else
-        {
-            stringBuilder.Append(Symbol.Constructor);
-        }
-
-        if (asMethodInfo is not null)
-        {
-            ProcessGenerics(stringBuilder, methodBase.GetGenericArguments(), null);
-        }
-
-        stringBuilder.Append(Symbol.LeftParenthesis);
-
-        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeThisKeywordForExtensions) && methodBase.IsExtension())
-        {
-            stringBuilder.Append(Modifier.ThisWithEndingSpace);
+                ProcessMethod(stringBuilder, realMethodInfo ?? method, stateMachineType, nameRControlFlags);
+                
+                break;
+            case ConstructorInfo constructor:
+                stateMachineType = StateMachineType.None;
+                
+                ProcessConstructor(stringBuilder, constructor, nameRControlFlags);
+                
+                break;
+            default:
+                throw new NotSupportedException($"Method type '{methodBase.GetType().Name}' is not supported");
         }
         
-        ProcessParameters(stringBuilder, methodBase.GetParameters(), nameRControlFlags);
+        stringBuilder.Append(Constants.LeftParenthesis);
 
-        stringBuilder.Append(Symbol.RightParenthesis);
+        var parameters = methodBase.GetParameters();
+        if (parameters.Length > 0)
+        {
+            ProcessParameters(stringBuilder, parameters, nameRControlFlags);
+        }
+
+        stringBuilder.Append(Constants.RightParenthesis);
+    }
+    
+    private void ProcessMethod(StringBuilder stringBuilder, MethodInfo method, StateMachineType stateMachineType, NameRControlFlags nameRControlFlags)
+    {
+        ProcessMethodModifier(stringBuilder, method, nameRControlFlags);
+        
+        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeAsyncModifier) && stateMachineType.HasFlag(StateMachineType.Async))
+        {
+            stringBuilder.Append(Constants.AsyncWithEndingSpace);
+        }
+
+        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeReturnParameter))
+        {
+            ProcessParameter(stringBuilder, method.ReturnParameter, nameRControlFlags);
+
+            stringBuilder.Append(Constants.Space);
+        }
+
+        if (nameRControlFlags.HasFlag(NameRControlFlags.PrependFullTypeName) && method.DeclaringType is not null)
+        {
+            ProcessTypeCore(stringBuilder, method.DeclaringType, true, null);
+            
+            stringBuilder.Append(Constants.FullStop);
+        }
+
+        stringBuilder.Append(method.Name);
+
+        if (method.IsGenericMethod)
+        {
+            ProcessGenerics(stringBuilder, method.GetGenericArguments(), null);
+        }
     }
 
-    private static void ProcessMethodModifier(StringBuilder stringBuilder, MethodBase methodBase, StateMachineTypes stateMachineType, NameRControlFlags nameRControlFlags)
+    private void ProcessConstructor(StringBuilder stringBuilder, ConstructorInfo constructor, NameRControlFlags nameRControlFlags)
+    {
+        ProcessMethodModifier(stringBuilder, constructor, nameRControlFlags);
+
+        if (nameRControlFlags.HasFlag(NameRControlFlags.PrependFullTypeName) && constructor.DeclaringType is not null)
+        {
+            ProcessTypeCore(stringBuilder, constructor.DeclaringType, true, null);
+            
+            stringBuilder.Append(Constants.FullStop);
+        }
+
+        if (!constructor.IsStatic)
+        {
+            stringBuilder.Append(Constants.Constructor);
+
+            return;
+        }
+
+        stringBuilder.Append(Constants.StaticConstructor);
+    }
+
+    private static void ProcessMethodModifier(StringBuilder stringBuilder, MethodBase methodBase, NameRControlFlags nameRControlFlags)
     {
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeAccessModifier))
         {
+            // Mutually exclusive, a method cant be "private" and "public" and the same time
             if (methodBase.IsPrivate)
             {
-                stringBuilder.Append(Modifier.PrivateWithEndingSpace);
+                stringBuilder.Append(Constants.PrivateWithEndingSpace);
             }
             else if (methodBase.IsPublic)
             {
-                stringBuilder.Append(Modifier.PublicWithEndingSpace);
+                stringBuilder.Append(Constants.PublicWithEndingSpace);
             }
         }
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeStaticModifier) && methodBase.IsStatic)
         {
-            stringBuilder.Append(Modifier.StaticWithEndingSpace);
-        }
-
-        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeAsyncModifier) && stateMachineType.HasFlag(StateMachineTypes.Async))
-        {
-            stringBuilder.Append(Modifier.AsyncWithEndingSpace);
+            stringBuilder.Append(Constants.StaticWithEndingSpace);
         }
     }
 
     private void ProcessParameters(StringBuilder stringBuilder, ParameterInfo[] parameters, NameRControlFlags nameRControlFlags)
     {
-        if (parameters.Length == 0)
+        for (var parameterIndex = 0; parameterIndex < parameters.Length; parameterIndex++)
         {
-            return;
-        }
+            ProcessParameter(stringBuilder, parameters[parameterIndex], nameRControlFlags);
 
-        for (var i = 0; i < parameters.Length; i++)
-        {
-            ProcessParameter(stringBuilder, parameters[i], nameRControlFlags);
-
-            if (i < parameters.Length - 1)
+            if (parameterIndex < parameters.Length - 1)
             {
-                stringBuilder.Append(Symbol.CommaWithEndingSpace);
+                stringBuilder.Append(Constants.CommaWithEndingSpace);
             }
         }
     }
 
     private void ProcessParameter(StringBuilder stringBuilder, ParameterInfo parameterInfo, NameRControlFlags nameRControlFlags)
     {
-        if (parameterInfo.Position > -1 && nameRControlFlags.HasFlag(NameRControlFlags.IncludeParameterModifiers))
+        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeParameterPrefix))
         {
-            ProcessParameterModifier(stringBuilder, parameterInfo);
+            ProcessParameterPrefix(stringBuilder, parameterInfo, nameRControlFlags);
         }
 
-        var nullabilityInfo = parameterInfo.GetNullabilityInfo();
+        var nullabilityInfo = nullabilityInfoContext.Create(parameterInfo);
 
         ProcessTypeCore(stringBuilder, parameterInfo.ParameterType, false, nullabilityInfo);
 
-        if (parameterInfo.Position == -1)
+        if (parameterInfo.Position == Constants.ReturnParameterIndex)
         {
             return;
         }
 
-        stringBuilder.Append(Symbol.Space)
+        stringBuilder.Append(Constants.Space)
                      .Append(parameterInfo.Name);
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeParameterDefaultValue))
@@ -376,25 +337,52 @@ public sealed class TypeNameR : ITypeNameR
         }
     }
 
-    private static void ProcessParameterModifier(StringBuilder stringBuilder, ParameterInfo parameterInfo)
+    private static void ProcessParameterPrefix(StringBuilder stringBuilder, ParameterInfo parameterInfo, NameRControlFlags nameRControlFlags)
     {
-        if (parameterInfo.IsOut)
+        // They are all mutually exclusive!
+        // The "this" keyword is only valid on the first parameter
+        if (parameterInfo.Position == Constants.ThisKeywordOnlyValidOnIndex
+            && nameRControlFlags.HasFlag(NameRControlFlags.IncludeThisKeyword)
+            && parameterInfo.Member.IsDefined(typeof(ExtensionAttribute), false))
         {
-            stringBuilder.Append(Modifier.OutWithEndingSpace);
+            stringBuilder.Append(Constants.ThisWithEndingSpace);
 
             return;
         }
 
-        if (parameterInfo.IsIn)
+        // The "in" and "out" keywords are only valid on non return parameter
+        if (parameterInfo.Position > Constants.ReturnParameterIndex)
         {
-            stringBuilder.Append(Modifier.InWithEndingSpace);
+            if (parameterInfo.IsOut)
+            {
+                stringBuilder.Append(Constants.OutWithEndingSpace);
 
-            return;
+                return;
+            }
+
+            if (parameterInfo.IsIn)
+            {
+                stringBuilder.Append(Constants.InWithEndingSpace);
+
+                return;
+            }    
         }
 
+        // The "in" and "out" keywords are also considered by-ref, in order to get correct results, "in" and "out" must be evaluated first
+        // The "ref" keyword is also valid on return parameters
         if (parameterInfo.ParameterType.IsByRef)
         {
-            stringBuilder.Append(Modifier.RefWithEndingSpace);
+            stringBuilder.Append(Constants.RefWithEndingSpace);
+
+            return;
+        }
+
+        // The "params" keyword is only valid on non return parameter
+        if (parameterInfo.Position > Constants.ReturnParameterIndex 
+            && nameRControlFlags.HasFlag(NameRControlFlags.IncludeParamsKeyword)
+            && parameterInfo.IsDefined(typeof(ParamArrayAttribute), false))
+        {
+            stringBuilder.Append(Constants.ParamsWithEndingSpace);
         }
     }
 
@@ -405,27 +393,35 @@ public sealed class TypeNameR : ITypeNameR
             return;
         }
 
-        stringBuilder.Append(Symbol.Space);
+        stringBuilder.Append(Constants.Space);
 
         if (parameterInfo.DefaultValue is string @string)
         {
-            stringBuilder.Append(Symbol.EqualsSignWithEndingSpace)
-                         .Append(Symbol.QuotationMark)
+            // The compiler will join the constants at the call-site
+            stringBuilder.Append(Constants.EqualsSignWithEndingSpace + Constants.QuotationMark)
                          .Append(@string)
-                         .Append(Symbol.QuotationMark);
+                         .Append(Constants.QuotationMark);
 
             return;
         }
 
         if (parameterInfo.DefaultValue is null)
         {
-            stringBuilder.Append(Symbol.EqualsSign)
-                         .Append(Literal.DefaultWithLeadingSpace);
+            if (parameterInfo.ParameterType.IsValueType && Nullable.GetUnderlyingType(parameterInfo.ParameterType) is null)
+            {
+                // The compiler will join the constants at the call-site
+                stringBuilder.Append(Constants.EqualsSign + Constants.DefaultWithLeadingSpace);
+            }
+            else
+            {
+                // The compiler will join the constants at the call-site
+                stringBuilder.Append(Constants.EqualsSign + Constants.NullWithLeadingSpace);
+            }
 
             return;
         }
 
-        stringBuilder.Append(Symbol.EqualsSignWithEndingSpace)
+        stringBuilder.Append(Constants.EqualsSignWithEndingSpace)
                      .Append(parameterInfo.DefaultValue);
     }
 
@@ -434,12 +430,9 @@ public sealed class TypeNameR : ITypeNameR
     #region StackTrace specific
 
     /// <inheritdoc />
-    public string ExtractReadable(System.Diagnostics.StackTrace stackTrace, NameRControlFlags nameRControlFlags)
+    public string GenerateDisplay(System.Diagnostics.StackTrace stackTrace, NameRControlFlags nameRControlFlags)
     {
-        if (stackTrace is null)
-        {
-            throw new ArgumentNullException(nameof(stackTrace));
-        }
+        ArgumentNullException.ThrowIfNull(stackTrace);
         
         var stringBuilder = new StringBuilder();
 
@@ -449,110 +442,111 @@ public sealed class TypeNameR : ITypeNameR
     }
 
     /// <inheritdoc />
-    public string ExtractReadable(StackFrame stackFrame, NameRControlFlags nameRControlFlags)
+    public string GenerateDisplay(StackFrame stackFrame, NameRControlFlags nameRControlFlags)
     {
-        if (stackFrame is null)
-        {
-            throw new ArgumentNullException(nameof(stackFrame));
-        }
+        ArgumentNullException.ThrowIfNull(stackFrame);
 
         var stringBuilder = new StringBuilder();
 
-        if (ProcessStackFrame(stringBuilder, stackFrame, stackFrame.GetMethod(), DefaultCallDepth, nameRControlFlags))
-        {
-            throw new InvalidOperationException("Unable to process stack frame");
-        }
+        ProcessStackFrame(stringBuilder, stackFrame, stackFrame.GetMethod(), Constants.DefaultCallDepth, nameRControlFlags);
 
         return stringBuilder.ToString();
     }
 
     private void ProcessStackTrace(StringBuilder stringBuilder, System.Diagnostics.StackTrace stackTrace, NameRControlFlags nameRControlFlags)
     {
-        var recursiveStackTrace = stackTrace.EliminateRecursion();
-        for (var frameIndex = 0; frameIndex < recursiveStackTrace.Length; frameIndex++)
+        var recursiveStackTrace = stackTrace.GetFrames().AsSpan().FlattenRecursionAndFilterUnnecessaryStackFrames(nameRControlFlags, typeNameROptions.ExcludedNamespaces);
+        for (var stackFrameIndex = 0; stackFrameIndex < recursiveStackTrace.Length; stackFrameIndex++)
         {
-            var recursiveStackFrame = recursiveStackTrace[frameIndex];
+            var recursiveStackFrame = recursiveStackTrace[stackFrameIndex];
 
-            if (ProcessStackFrame(stringBuilder, recursiveStackFrame.StackFrame, recursiveStackFrame.Method, recursiveStackFrame.CallDepth, nameRControlFlags) && frameIndex < recursiveStackTrace.Length - 1)
+            ProcessStackFrame(stringBuilder, recursiveStackFrame.StackFrame, recursiveStackFrame.Method, recursiveStackFrame.CallDepth, nameRControlFlags);
+            
+            if (stackFrameIndex < recursiveStackTrace.Length - 1)
             {
-                stringBuilder.Append(Symbol.NewLine);
+                stringBuilder.Append(Constants.NewLine);
             }
         }
     }
 
-    private bool ProcessStackFrame(StringBuilder stringBuilder, StackFrame currentStackFrame, MethodBase? methodBase, uint callDepth, NameRControlFlags nameRControlFlags)
+    private void ProcessStackFrame(StringBuilder stringBuilder, StackFrame stackFrame, MethodBase? methodBase, uint callDepth, NameRControlFlags nameRControlFlags)
     {
+        // The compiler will join the constants at the call-site
+        stringBuilder.Append(Constants.Indent + Constants.AtWithEndingSpace);
+        
         if (methodBase is null)
         {
-            return false;
+            stringBuilder.Append(Constants.UnknownStackFrameName);
         }
-
-        if (SkipStackFrame(nameRControlFlags, methodBase))
+        else
         {
-            return false;
-        }
+            ProcessMethod(stringBuilder, methodBase, nameRControlFlags, out var stateMachineType);
+            
+            if (stateMachineType.HasFlag(StateMachineType.Iterator))
+            {
+                stringBuilder.Append(Constants.MoveNextCallSuffix);
+            }
 
-        var realMethodInfo = methodBase as MethodInfo;
-        var stateMachineType = StateMachineTypes.None;
-        if(realMethodInfo is not null)
-        {
-            stateMachineType = realMethodInfo.ResolveRealMethodFromStateMachine(out realMethodInfo);
-        }
-
-        stringBuilder.Append(StackTraceSymbol.Indent)
-                     .Append(StackTraceSymbol.AtWithEndingSpace);
-
-        ProcessMethod(stringBuilder, realMethodInfo ?? methodBase, stateMachineType, nameRControlFlags);
-
-        if (stateMachineType.HasFlag(StateMachineTypes.Iterator))
-        {
-            stringBuilder.Append(StackTraceSymbol.MoveNextCallSuffix);
-        }
-
-        if (callDepth > DefaultCallDepth)
-        {
-            stringBuilder.Append(StackTraceSymbol.RecursionMarkWithLeadingAndEndingSpace)
-                         .Append(callDepth);
+            if (callDepth > Constants.DefaultCallDepth)
+            {
+                stringBuilder.Append(Constants.RecursionMarkWithLeadingAndEndingSpace)
+                    .Append(callDepth);
+            }
         }
 
         if (!nameRControlFlags.HasFlag(NameRControlFlags.IncludeSourceInformation))
         {
-            return true;
+            return;
         }
 
-        var stackFrameMetadata = currentStackFrame.GetExistingStackFrameMetadata() ?? stackFrameMetadataProvider.GetStackFrameMetadata(currentStackFrame);
-        if (stackFrameMetadata.HasValue)
+        var stackFrameMetadata = stackFrame.GetExistingStackFrameMetadata();
+        if (!stackFrameMetadata.HasValue && methodBase is not null && nameRControlFlags.HasFlag(NameRControlFlags.FallbackToStackFrameMetadataProvider))
         {
-            stringBuilder.Append(StackTraceSymbol.InSourceWithLeadingAndEndingSpace)
-                         .Append(stackFrameMetadata.Value.FileName)
-                         .Append(StackTraceSymbol.LineWithEndingSpace)
-                         .Append(stackFrameMetadata.Value.LineNumber);
+            stackFrameMetadata = stackFrameMetadataProvider?.ProvideStackFrameMetadata(stackFrame, methodBase);
+        }
+        
+        if (!stackFrameMetadata.HasValue)
+        {
+            return;
         }
 
-        return true;
-    }
+        stringBuilder.Append(Constants.InSourceWithLeadingAndEndingSpace)
+            .Append(stackFrameMetadata.Value.FileName);
 
-    private bool SkipStackFrame(NameRControlFlags nameRControlFlags, MethodBase methodBase)
-        => !nameRControlFlags.HasFlag(NameRControlFlags.IncludeHiddenStackFrames) && (methodBase.IsHidden() || methodBase.IsValueTaskSource()
-            || (nameRControlFlags.HasFlag(NameRControlFlags.ExcludeStackFrameMethodsByNamespace)
-                && typeNameROptions.ExcludedNamespaces.IsNamespaceExcluded(methodBase)));
+        if (stackFrameMetadata.Value.LineNumber == 0)
+        {
+            return;
+        }
+
+        stringBuilder.Append(Constants.LineWithEndingSpace)
+            .Append(stackFrameMetadata.Value.LineNumber);
+
+        if (stackFrameMetadata.Value.ColumnNumber > 0)
+        {
+            stringBuilder.Append(Constants.Colon)
+                .Append(stackFrameMetadata.Value.ColumnNumber);
+        }
+    }
 
     #endregion
 
     #region Exception specific
 
     /// <inheritdoc />
-    public string ExtractReadableStackTrace(Exception exception, NameRControlFlags nameRControlFlags)
+    public string GenerateDisplay(Exception exception, NameRControlFlags nameRControlFlags)
     {
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
+        ArgumentNullException.ThrowIfNull(exception);
 
         var stackTrace = new System.Diagnostics.StackTrace(exception, nameRControlFlags.HasFlag(NameRControlFlags.IncludeSourceInformation));
 
         var stringBuilder = new StringBuilder();
 
+        // Write exception header
+        ProcessTypeCore(stringBuilder, exception.GetType(), true, null);
+
+        stringBuilder.Append(": ").AppendLine(exception.Message);
+
+        // Write exception stacktrace
         ProcessStackTrace(stringBuilder, stackTrace, nameRControlFlags);
 
         return stringBuilder.ToString();
@@ -561,17 +555,14 @@ public sealed class TypeNameR : ITypeNameR
         /// <inheritdoc />
     public TException RewriteStackTrace<TException>(TException exception,
                                                     NameRControlFlags nameRControlFlags)
-        where TException : notnull, Exception
+        where TException : Exception
     {
-        if (!ExceptionStackTraceManipulator.WasStackTraceBackingFieldFound)
+        if (!ExceptionStackTraceManipulator.StackTraceBackingFieldFound)
         {
             throw new StackTraceNotRewritableException("Backingfield for stacktrace does not exist on type 'Exception'");
         }
 
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
+        ArgumentNullException.ThrowIfNull(exception);
 
         RewriteStackTraceCore(exception, nameRControlFlags);
 
@@ -580,44 +571,37 @@ public sealed class TypeNameR : ITypeNameR
 
     private void RewriteStackTraceCore<TException>(TException exception,
                                                     NameRControlFlags nameRControlFlags)
-          where TException : notnull, Exception
+          where TException : Exception
     {
-        try
+        if (exception.StackTrace is not null)
         {
-            if (exception.StackTrace is not null)
-            {
-                var stringBuilder = new StringBuilder();
-                
-                var originalStackTrace = new System.Diagnostics.StackTrace(exception, nameRControlFlags.HasFlag(NameRControlFlags.IncludeSourceInformation));
+            var stringBuilder = new StringBuilder();
+            
+            var originalStackTrace = new System.Diagnostics.StackTrace(exception, nameRControlFlags.HasFlag(NameRControlFlags.IncludeSourceInformation));
 
-                ProcessStackTrace(stringBuilder, originalStackTrace, nameRControlFlags);
+            ProcessStackTrace(stringBuilder, originalStackTrace, nameRControlFlags);
 
-                exception.SetStackTrace(stringBuilder, nameRControlFlags.HasFlag(NameRControlFlags.StoreOriginalStackTraceInExceptionData));
-            }
-
-            if (!nameRControlFlags.HasFlag(NameRControlFlags.IncludeInnerExceptions))
-            {
-                return;
-            }
-
-            if (exception.InnerException is not null)
-            {
-                RewriteStackTraceCore(exception.InnerException, nameRControlFlags);
-            }
-
-            if (exception is not AggregateException aggregateException)
-            {
-                return;
-            }
-
-            foreach (var innerException in aggregateException.InnerExceptions)
-            {
-                RewriteStackTraceCore(innerException, nameRControlFlags);
-            }
+            exception.SetStackTrace(stringBuilder, nameRControlFlags.HasFlag(NameRControlFlags.StoreOriginalStackTraceInExceptionData));
         }
-        catch
+
+        if (!nameRControlFlags.HasFlag(NameRControlFlags.IncludeInnerExceptions))
         {
-            Debug.Fail(null);
+            return;
+        }
+
+        if (exception.InnerException is not null)
+        {
+            RewriteStackTraceCore(exception.InnerException, nameRControlFlags);
+        }
+
+        if (exception is not AggregateException aggregateException)
+        {
+            return;
+        }
+
+        foreach (var innerException in aggregateException.InnerExceptions)
+        {
+            RewriteStackTraceCore(innerException, nameRControlFlags);
         }
     }
 

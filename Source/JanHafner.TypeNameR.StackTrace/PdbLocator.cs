@@ -6,50 +6,93 @@ namespace JanHafner.TypeNameR.StackTrace;
 public sealed class PdbLocator : IPdbLocator
 {
     private readonly IFileSystem fileSystem;
-
+    
     public PdbLocator(IFileSystem fileSystem)
     {
         this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
     }
 
-    public string? GetPdbLocation(string assemblyLocation)
+    public Stream? OpenLocatedPdb(string assemblyLocation)
     {
         if (!fileSystem.File.Exists(assemblyLocation))
         {
             return null;
         }
+        
+        return OpenFromProbedLocation(assemblyLocation) ?? OpenFromPortableExecutable(assemblyLocation);
+    }
 
+    private FileSystemStream? OpenFromPortableExecutable(string assemblyLocation)
+    {
         using var assemblyFileStream = fileSystem.FileStream.New(assemblyLocation, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-        using var peReader = new PEReader(assemblyFileStream);
+        using var peReader = new PEReader(assemblyFileStream, 
+#if NET6_0
+            // ...in .net 6 it reduced memory allocations
+            PEStreamOptions.Default
+#elif NET7_0_OR_GREATER
+            // ...but in .net 7/8 memory allocation and speed was reduced
+            PEStreamOptions.PrefetchEntireImage
+#endif
+            );
 
-        foreach (var debugDirectoryEntry in peReader.ReadDebugDirectory())
+        var debugDirectory = peReader.ReadDebugDirectory().AsSpan();
+        foreach (var debugDirectoryEntry in debugDirectory)
         {
-            var pdbLocation = GetPdbLocationFromDebugDirectoryEntry(assemblyLocation, peReader, debugDirectoryEntry);
-            if (pdbLocation is not null)
+            if (debugDirectoryEntry.Type != DebugDirectoryEntryType.CodeView)
             {
-                return pdbLocation;
+                continue;
+            }
+
+            var pdbStream = CreateFromCodeViewDebugDirectoryData(assemblyLocation, peReader, debugDirectoryEntry);
+            if (pdbStream is not null)
+            {
+                return pdbStream;
             }
         }
 
         return null;
     }
 
-    private string? GetPdbLocationFromDebugDirectoryEntry(ReadOnlySpan<char> assemblyLocation,
-                                                          PEReader peReader,
-                                                          DebugDirectoryEntry debugDirectoryEntry)
+    private FileSystemStream? CreateFromCodeViewDebugDirectoryData(ReadOnlySpan<char> assemblyLocation, PEReader peReader, DebugDirectoryEntry debugDirectoryEntry)
     {
-        if (debugDirectoryEntry.Type != DebugDirectoryEntryType.CodeView)
+        var codeViewDebugDirectoryEntry = peReader.ReadCodeViewDebugDirectoryData(debugDirectoryEntry);
+
+        var pdbStream = OpenIfExists(codeViewDebugDirectoryEntry.Path);
+        if (pdbStream is not null)
         {
-            return null;
+            return pdbStream;
         }
 
-        var codeViewdebugDirectoryEntry = peReader.ReadCodeViewDebugDirectoryData(debugDirectoryEntry);
-
         var peDirectory = fileSystem.Path.GetDirectoryName(assemblyLocation);
-        if (!peDirectory.IsEmpty)
+        var pdbFileName = fileSystem.Path.GetFileName(codeViewDebugDirectoryEntry.Path);
+
+        var pdbFilePath = fileSystem.Path.Join(peDirectory, pdbFileName);
+
+        return OpenIfExists(pdbFilePath);
+    }
+
+    private FileSystemStream? OpenFromProbedLocation(string assemblyLocation)
+    {
+        var assemblyLocationSpan = assemblyLocation.AsSpan();
+        var assemblyLocationExtension = fileSystem.Path.GetExtension(assemblyLocationSpan);
+        var startOfExtension = assemblyLocationSpan.LastIndexOf(assemblyLocationExtension);
+        if (startOfExtension > 0)
         {
-            return fileSystem.Path.Join(peDirectory, fileSystem.Path.GetFileName(codeViewdebugDirectoryEntry.Path));
+            var assemblyLocationWithoutExtension = assemblyLocationSpan[..startOfExtension];
+            var assemblyLocationWithPdbExtension = string.Concat(assemblyLocationWithoutExtension, ".pdb");
+
+            return OpenIfExists(assemblyLocationWithPdbExtension);
+        }
+
+        return null;
+    }
+
+    private FileSystemStream? OpenIfExists(string pdbLocation)
+    {
+        if (fileSystem.File.Exists(pdbLocation))
+        {
+            return fileSystem.FileStream.New(pdbLocation, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
         return null;

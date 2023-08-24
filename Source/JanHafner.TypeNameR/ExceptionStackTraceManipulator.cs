@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using JanHafner.TypeNameR.Exceptions;
+using System.Reflection;
 using System.Text;
 
 namespace JanHafner.TypeNameR;
@@ -11,10 +12,11 @@ public static class ExceptionStackTraceManipulator
     public const string OriginalStackTraceKey = "OriginalStackTrace";
 
 #pragma warning disable S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
+    // This internal field stores the string of the stacktrace internally.
     private static readonly FieldInfo? StackTraceBackingField = typeof(Exception).GetField("_stackTraceString", BindingFlags.Instance | BindingFlags.NonPublic);
 #pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
 
-    public static bool WasStackTraceBackingFieldFound => StackTraceBackingField is not null;
+    public static bool StackTraceBackingFieldFound => StackTraceBackingField is not null;
 
     /// <summary>
     /// Gets the original stacktrace if available.
@@ -24,20 +26,7 @@ public static class ExceptionStackTraceManipulator
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="exception"/> is <see langword="null"/>.</exception>
     public static string? GetOriginalStackTraceOrNull(this Exception exception)
     {
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
-
-        return exception.GetOriginalStackTraceOrNullCore();
-    }
-
-    private static string? GetOriginalStackTraceOrNullCore(this Exception exception)
-    {
-        if (!exception.Data.Contains(OriginalStackTraceKey))
-        {
-            return null;
-        }
+        ArgumentNullException.ThrowIfNull(exception);
 
         return (string?)exception.Data[OriginalStackTraceKey];
     }
@@ -46,28 +35,21 @@ public static class ExceptionStackTraceManipulator
     /// Restores the original stacktrace of the <see cref="Exception"/> if available.
     /// </summary>
     /// <param name="exception">The <see cref="Exception"/>.</param>
-    /// <param name="removeStoredOriginalStackTrace">If <see langword="true"/> the original stacktrace will be removed from <see cref="Exception.Data"/>.</param>
     /// <returns>Returns <see langword="true"/> if the original stacktrace was restored.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="exception"/> is <see langword="null"/>.</exception>
-    public static bool TryRestoreOriginalStackTrace(this Exception exception, bool removeStoredOriginalStackTrace = true)
+    public static bool TryRestoreOriginalStackTrace(this Exception exception)
     {
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
+        ArgumentNullException.ThrowIfNull(exception);
 
-        var originalStackTrace = exception.GetOriginalStackTraceOrNullCore();
+        var originalStackTrace = (string?)exception.Data[OriginalStackTraceKey];
         if (originalStackTrace is null)
         {
             return false;
         }
 
-        exception.SetStackTraceCore(new StringBuilder(originalStackTrace, originalStackTrace.Length), true);
+        exception.SetStackTraceCore(new StringBuilder(originalStackTrace, originalStackTrace.Length), storeOriginalStackTrace: false);
 
-        if (removeStoredOriginalStackTrace)
-        {
-            exception.Data.Remove(OriginalStackTraceKey);
-        }
+        exception.Data.Remove(OriginalStackTraceKey);
 
         return true;
     }
@@ -77,14 +59,12 @@ public static class ExceptionStackTraceManipulator
     /// </summary>
     /// <param name="exception">The <see cref="Exception"/>.</param>
     /// <param name="stackTrace">The stacktrace.</param>
-    /// <param name="storeOriginalStackTrace">If <see langword="true"/> the original stracktrace will be stored in <see cref="Exception.Data"/>.</param>
+    /// <param name="storeOriginalStackTrace">If <see langword="true"/> the original stacktrace will be stored in <see cref="Exception.Data"/>.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="exception"/> or <paramref name="stackTrace"/> is <see langword="null"/>.</exception>
     public static void SetStackTrace(this Exception exception, StringBuilder stackTrace, bool storeOriginalStackTrace = true)
     {
-        if (exception is null)
-        {
-            throw new ArgumentNullException(nameof(exception));
-        }
+        ArgumentNullException.ThrowIfNull(exception);
+        ArgumentNullException.ThrowIfNull(stackTrace);
 
         exception.SetStackTraceCore(stackTrace, storeOriginalStackTrace);
     }
@@ -103,7 +83,7 @@ public static class ExceptionStackTraceManipulator
     {
         try
         {
-            StackTraceBackingField!.SetValue(exception, stackTrace.ToString());
+            StackTraceBackingField.SetValue(exception, stackTrace.ToString());
         }
         catch (FieldAccessException fieldAccessException)
         {

@@ -7,16 +7,36 @@ namespace JanHafner.TypeNameR.Tests.ExceptionStackTraceManipulatorTests;
 
 public sealed class SetStackTrace
 {
-    private Exception exception;
+    private Exception exception = new();
 
-    private StringBuilder stackTrace;
+    private StringBuilder stackTrace = new();
 
     private bool storeOriginalStackTrace;
-
-    public SetStackTrace()
+    
+    [Fact]
+    public void ThrowsArgumentNullExceptionIfExceptionIsNull()
     {
-        exception = new();
-        stackTrace = new();
+        // Arrange
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+        exception = null;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+        
+        // Act, Assert
+        var argumentNullException = Assert.Throws<ArgumentNullException>(() => Call());
+        argumentNullException.ParamName.Should().Be(nameof(exception));
+    }
+    
+    [Fact]
+    public void ThrowsArgumentNullExceptionIfStringBuilderIsNull()
+    {
+        // Arrange
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+        stackTrace = null;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+        
+        // Act, Assert
+        var argumentNullException = Assert.Throws<ArgumentNullException>(() => Call());
+        argumentNullException.ParamName.Should().Be(nameof(stackTrace));
     }
 
     [Fact]
@@ -49,7 +69,7 @@ public sealed class SetStackTrace
         exception.StackTrace.Should().Be(content);
         exception.Data.Contains(ExceptionStackTraceManipulator.OriginalStackTraceKey).Should().BeTrue();
     }
-
+    
     [DebuggerStepThrough]
     private void Call() => exception.SetStackTrace(stackTrace, storeOriginalStackTrace);
 }

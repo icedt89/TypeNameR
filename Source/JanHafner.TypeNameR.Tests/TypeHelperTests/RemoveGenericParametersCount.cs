@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using JanHafner.TypeNameR.Helper;
 using Xunit;
 
 namespace JanHafner.TypeNameR.Tests.TypeHelperTests;

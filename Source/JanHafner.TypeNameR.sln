@@ -13,6 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Extensions.TypeName
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JanHafner.TypeNameR.StackTrace", "JanHafner.TypeNameR.StackTrace\JanHafner.TypeNameR.StackTrace.csproj", "{98D54D88-B851-4FB7-8E2C-E9CF70C795A6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JanHafner.TypeNameR.BenchmarkAndTestUtils", "JanHafner.TypeNameR.BenchmarkAndTestUtils\JanHafner.TypeNameR.BenchmarkAndTestUtils.csproj", "{09A52D2F-478A-4F33-8C70-CE5018C86FCB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Extensions.TypeNameR.Tests", "Serilog.Extensions.TypeNameR.Tests\Serilog.Extensions.TypeNameR.Tests.csproj", "{C59AD229-DDD7-41C8-A004-AC71F99518BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{98D54D88-B851-4FB7-8E2C-E9CF70C795A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98D54D88-B851-4FB7-8E2C-E9CF70C795A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98D54D88-B851-4FB7-8E2C-E9CF70C795A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09A52D2F-478A-4F33-8C70-CE5018C86FCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09A52D2F-478A-4F33-8C70-CE5018C86FCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09A52D2F-478A-4F33-8C70-CE5018C86FCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09A52D2F-478A-4F33-8C70-CE5018C86FCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C59AD229-DDD7-41C8-A004-AC71F99518BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C59AD229-DDD7-41C8-A004-AC71F99518BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C59AD229-DDD7-41C8-A004-AC71F99518BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C59AD229-DDD7-41C8-A004-AC71F99518BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

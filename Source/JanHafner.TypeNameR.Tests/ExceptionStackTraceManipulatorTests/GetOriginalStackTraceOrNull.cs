@@ -6,11 +6,19 @@ namespace JanHafner.TypeNameR.Tests.ExceptionStackTraceManipulatorTests;
 
 public sealed class GetOriginalStackTraceOrNull
 {
-    private Exception exception;
-
-    public GetOriginalStackTraceOrNull()
+    private Exception exception = new();
+    
+    [Fact]
+    public void ThrowsArgumentNullExceptionIfExceptionIsNull()
     {
-        exception = new Exception();
+        // Arrange
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+        exception = null;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+        
+        // Act, Assert
+        var argumentNullException = Assert.Throws<ArgumentNullException>(() => Call());
+        argumentNullException.ParamName.Should().Be(nameof(exception));
     }
 
     [Fact]
