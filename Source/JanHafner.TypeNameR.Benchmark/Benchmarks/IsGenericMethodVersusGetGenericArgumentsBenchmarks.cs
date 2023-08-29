@@ -7,7 +7,7 @@ using System.Reflection;
 namespace JanHafner.TypeNameR.Benchmark.Benchmarks;
 
 /// <summary>
-/// This benchmarks should prove that calling <see cref="MethodInfo.IsGenericMethod" /> to check for generic parameters first, brings performance improvements.
+/// This benchmarks should prove that calling <see cref="MethodInfo" />.<see cref="MethodInfo.IsGenericMethod" /> to check for generic parameters first, brings performance improvements.
 /// </summary>
 [MemoryDiagnoser]
 [Orderer(SummaryOrderPolicy.Method)]

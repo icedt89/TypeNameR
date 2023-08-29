@@ -7,7 +7,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
 {
     public sealed class GenerateDisplayOfStackTrace
     {
-        [Fact(Skip = "Repair")]
+        [Fact]
         public void GenerateStackTraceDisplay()
         {
             // Arrange
@@ -30,7 +30,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
             throw new NotImplementedException();
         }
 
-        [Fact(Skip = "Repair")]
+        [Fact]
         public void GenerateTheSameStackTraceAsDemystifier()
         {
             // Arrange

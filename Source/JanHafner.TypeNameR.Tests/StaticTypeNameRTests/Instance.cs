@@ -2,6 +2,7 @@
 
 namespace JanHafner.TypeNameR.Tests.StaticTypeNameRTests;
 
+[Collection("Isolated")]
 public sealed class Instance
 {
     [Fact]

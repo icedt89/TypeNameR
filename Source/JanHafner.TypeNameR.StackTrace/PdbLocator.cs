@@ -3,15 +3,21 @@ using System.Reflection.PortableExecutable;
 
 namespace JanHafner.TypeNameR.StackTrace;
 
+/// <inheritdoc />
 public sealed class PdbLocator : IPdbLocator
 {
     private readonly IFileSystem fileSystem;
     
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PdbLocator"/> class.
+    /// </summary>
+    /// <param name="fileSystem">Implementation of <see cref="IFileSystem"/> that is used to interact with the file system.</param>
     public PdbLocator(IFileSystem fileSystem)
     {
         this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
     }
 
+    /// <inheritdoc />
     public Stream? OpenLocatedPdb(string assemblyLocation)
     {
         if (!fileSystem.File.Exists(assemblyLocation))

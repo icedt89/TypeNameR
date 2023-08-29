@@ -9,6 +9,9 @@ namespace JanHafner.TypeNameR;
 /// </summary>
 public static class ExceptionStackTraceManipulator
 {
+    /// <summary>
+    /// The key by which the original stack trace is stored in Exception.Data.
+    /// </summary>
     public const string OriginalStackTraceKey = "OriginalStackTrace";
 
 #pragma warning disable S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
@@ -16,6 +19,9 @@ public static class ExceptionStackTraceManipulator
     private static readonly FieldInfo? StackTraceBackingField = typeof(Exception).GetField("_stackTraceString", BindingFlags.Instance | BindingFlags.NonPublic);
 #pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
 
+    /// <summary>
+    /// Returns <see langword="true"/> if the non public backing field was found.
+    /// </summary>
     public static bool StackTraceBackingFieldFound => StackTraceBackingField is not null;
 
     /// <summary>
@@ -55,11 +61,11 @@ public static class ExceptionStackTraceManipulator
     }
 
     /// <summary>
-    /// Sets the supplied stacktrace as <see cref="Exception.StackTrace"/> and optional stores the original stacktrace in <see cref="Exception.Data"/>.
+    /// Sets the supplied stacktrace as <see cref="Exception"/>.<see cref="Exception.StackTrace"/> and optional stores the original stacktrace in <see cref="Exception"/>.<see cref="Exception.Data"/>.
     /// </summary>
     /// <param name="exception">The <see cref="Exception"/>.</param>
     /// <param name="stackTrace">The stacktrace.</param>
-    /// <param name="storeOriginalStackTrace">If <see langword="true"/> the original stacktrace will be stored in <see cref="Exception.Data"/>.</param>
+    /// <param name="storeOriginalStackTrace">If <see langword="true"/> the original stacktrace will be stored in <see cref="Exception"/>.<see cref="Exception.Data"/>.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="exception"/> or <paramref name="stackTrace"/> is <see langword="null"/>.</exception>
     public static void SetStackTrace(this Exception exception, StringBuilder stackTrace, bool storeOriginalStackTrace = true)
     {

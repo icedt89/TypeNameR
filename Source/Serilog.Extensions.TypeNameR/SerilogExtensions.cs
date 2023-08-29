@@ -18,7 +18,7 @@ public static class SerilogExtensions
     /// <param name="fullTypeName">Controls whether the full <see cref="Type"/> name should be used.</param>
     /// <param name="throwExceptions">If set to <see langword="true"/> methods in this class will throw exceptions.</param>
     /// <param name="selfLog">If set to <see langword="true"/> minimal logging on error will also take action.</param>
-    /// <returns>The <see cref="ILogger"/> instance after the call to <see cref="ILogger.ForContext(string, object, bool)"/>.</returns>
+    /// <returns>The <see cref="ILogger"/> instance after the call to <see cref="ILogger"/>.<see cref="ILogger.ForContext(string, object, bool)"/>.</returns>
     /// <exception cref="ArgumentNullException">If <paramref name="throwExceptions"/> is set to <see langword="true"/>, exceptions will be thrown if <paramref name="logger"/> or <paramref name="instance"/> are <see langword="null"/>.</exception>
     public static ILogger For<T>(this ILogger logger, T instance, ITypeNameR? typeNameR = null, bool fullTypeName = false, bool throwExceptions = false,
         bool selfLog = false)
@@ -39,7 +39,7 @@ public static class SerilogExtensions
     /// <param name="fullTypeName">Controls whether the full <see cref="Type"/> name should be used.</param>
     /// <param name="throwExceptions">If set to <see langword="true"/> methods in this class will throw exceptions.</param>
     /// <param name="selfLog">If set to <see langword="true"/> minimal logging on error will also take action.</param>
-    /// <returns>The <see cref="ILogger"/> instance after the call to <see cref="ILogger.ForContext(string, object, bool)"/>.</returns>
+    /// <returns>The <see cref="ILogger"/> instance after the call to <see cref="ILogger"/>.<see cref="ILogger.ForContext(string, object, bool)"/>.</returns>
     /// <exception cref="ArgumentNullException">If <paramref name="throwExceptions"/> is set to <see langword="true"/>, exceptions will be thrown if <paramref name="logger"/> is <see langword="null"/> or the type could not be retrieved from the parent stack frame.</exception>
     public static ILogger For(this ILogger logger, Type type, ITypeNameR? typeNameR = null, bool fullTypeName = false, bool throwExceptions = false,
         bool selfLog = false)

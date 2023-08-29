@@ -5,15 +5,21 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace JanHafner.TypeNameR.StackTrace;
 
+/// <inheritdoc />
 public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
 {
     private readonly IPdbLocator pdbLocator;
     
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PdbLocator"/> class.
+    /// </summary>
+    /// <param name="pdbLocator">Implementation of the <see cref="IPdbLocator"/>.</param>
     public StackFrameMetadataProvider(IPdbLocator pdbLocator)
     {
         this.pdbLocator = pdbLocator ?? throw new ArgumentNullException(nameof(pdbLocator));
     }
 
+    /// <inheritdoc />
     public StackFrameMetadata? ProvideStackFrameMetadata(StackFrame stackFrame, MethodBase method)
     {
         var ilOffset = stackFrame.GetILOffset();

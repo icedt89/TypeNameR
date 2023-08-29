@@ -70,12 +70,12 @@ public enum NameRControlFlags
     IncludeInnerExceptions = 1024,
 
     /// <summary>
-    /// Stores the original <see cref="System.Diagnostics.StackTrace"/> of the <see cref="Exception"/> in the <see cref="Exception.Data"/> property.
+    /// Stores the original <see cref="StackTrace"/> of the <see cref="Exception"/> in the <see cref="Exception.Data"/> property.
     /// </summary>
     StoreOriginalStackTraceInExceptionData = 2048,
 
     /// <summary>
-    /// Exclude namespaces of declaring methods of stack frames starting with <see cref="TypeNameROptions.ExcludedNamespaces"/>.
+    /// Exclude namespaces of declaring methods of stack frames starting with <see cref="TypeNameROptions"/>.<see cref="TypeNameROptions.ExcludedNamespaces"/>.
     /// </summary>
     ExcludeStackFrameMethodsByNamespace = 8192,
     

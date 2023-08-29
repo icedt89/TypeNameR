@@ -6,7 +6,7 @@ using JanHafner.TypeNameR.BenchmarkAndTestUtils;
 namespace JanHafner.TypeNameR.Benchmark.Benchmarks;
 
 /// <summary>
-/// This benchmarks should prove that calling <see cref="Type.IsGenericType" /> to check for generic parameters first, brings performance improvements.
+/// This benchmarks should prove that calling <see cref="Type" />.<see cref="Type.IsGenericType" /> to check for generic parameters first, brings performance improvements.
 /// </summary>
 [MemoryDiagnoser]
 [Orderer(SummaryOrderPolicy.Method)]

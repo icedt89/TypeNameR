@@ -7,6 +7,9 @@ using NullabilityInfo = Nullability.NullabilityInfoEx;
 
 namespace JanHafner.TypeNameR;
 
+/// <summary>
+/// Provides methods for generating display names of <see cref="Type"/>, <see cref="MethodBase"/> and so on.
+/// </summary>
 public interface ITypeNameR
 {
     /// <summary>
@@ -43,11 +46,11 @@ public interface ITypeNameR
     string GenerateDisplay(StackFrame stackFrame, NameRControlFlags nameRControlFlags);
 
     /// <summary>
-    /// Generates the readable display of the supplied <see cref="System.Diagnostics.StackTrace"/>.
+    /// Generates the readable display of the supplied <see cref="StackTrace"/>.
     /// </summary>
-    /// <param name="stackTrace">The <see cref="System.Diagnostics.StackTrace"/>.</param>
+    /// <param name="stackTrace">The <see cref="StackTrace"/>.</param>
     /// <param name="nameRControlFlags">Flags to customize the process.</param>
-    /// <returns>The readable display of the <see cref="System.Diagnostics.StackTrace"/>.</returns>
+    /// <returns>The readable display of the <see cref="StackTrace"/>.</returns>
     string GenerateDisplay(System.Diagnostics.StackTrace stackTrace, NameRControlFlags nameRControlFlags);
 
     /// <summary>

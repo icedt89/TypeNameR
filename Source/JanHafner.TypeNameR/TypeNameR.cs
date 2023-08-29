@@ -14,6 +14,7 @@ using NullabilityState = Nullability.NullabilityStateEx;
 
 namespace JanHafner.TypeNameR;
 
+/// <inheritdoc />
 public sealed class TypeNameR : ITypeNameR
 {
     private readonly IStackFrameMetadataProvider? stackFrameMetadataProvider;
@@ -23,7 +24,7 @@ public sealed class TypeNameR : ITypeNameR
     private readonly NullabilityInfoContext nullabilityInfoContext;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="JanHafner.TypeNameR"/> class with the supplied <see cref="TypeNameROptions"/>.
+    /// Initializes a new instance of the <see cref="TypeNameR"/> class with the supplied <see cref="TypeNameROptions"/>.
     /// </summary>
     /// <param name="stackFrameMetadataProvider">Implementation that is used to retrieve <see cref="StackFrameMetadata"/> for <see cref="StackFrame"/>.</param>
     /// <param name="typeNameROptions">If set to <see langword="null"/>, a new instance initialized with the default values will be used internally.</param>
@@ -347,7 +348,11 @@ public sealed class TypeNameR : ITypeNameR
         {
             stringBuilder.Append(Constants.ThisWithEndingSpace);
 
-            return;
+            // Support "this in" and "this ref"
+            if (!parameterInfo.IsIn && !parameterInfo.ParameterType.IsByRef)
+            {
+                return;
+            }
         }
 
         // The "in" and "out" keywords are only valid on non return parameter
@@ -544,7 +549,7 @@ public sealed class TypeNameR : ITypeNameR
         // Write exception header
         ProcessTypeCore(stringBuilder, exception.GetType(), true, null);
 
-        stringBuilder.Append(": ").AppendLine(exception.Message);
+        stringBuilder.Append(Constants.ColonWithEndingSpace).AppendLine(exception.Message);
 
         // Write exception stacktrace
         ProcessStackTrace(stringBuilder, stackTrace, nameRControlFlags);

@@ -1,5 +1,8 @@
 ﻿namespace JanHafner.TypeNameR;
 
+/// <summary>
+/// Public static available <see cref="ITypeNameR"/> (must be set up first!).
+/// </summary>
 public static class StaticTypeNameR
 {
     private static ITypeNameR? instance;

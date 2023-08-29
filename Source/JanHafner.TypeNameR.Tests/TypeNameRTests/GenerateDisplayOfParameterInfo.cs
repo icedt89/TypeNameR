@@ -156,13 +156,16 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
             generated.Should().Be(expected);
         }
 
-        [Fact]
-        public void GenerateThisPrefix()
+        [Theory]
+        [InlineData(nameof(ExtensionMethodsClass.This))]
+        [InlineData(nameof(ExtensionMethodsClass.ThisIn))]
+        [InlineData(nameof(ExtensionMethodsClass.ThisRef))]
+        public void GenerateForExtensionMethods(string methodName)
         {
             // Arrange
             var typeNameR = new TypeNameR();
 
-            var method = typeof(ExtensionMethodsClass).GetMethodOrThrow(nameof(ExtensionMethodsClass.This));
+            var method = typeof(ExtensionMethodsClass).GetMethodOrThrow(methodName);
             var parameter = method.GetParameters()[0];
 
             var expected = ExpectsAttribute.GetExpectation(parameter);

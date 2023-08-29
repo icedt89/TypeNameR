@@ -5,7 +5,7 @@ using System.Collections.Frozen;
 namespace JanHafner.TypeNameR;
 
 /// <summary>
-/// The options class to configure a <see cref="JanHafner.TypeNameR"/> instance.
+/// The options class to configure a <see cref="TypeNameR"/> instance.
 /// </summary>
 public sealed record TypeNameROptions
 {
@@ -16,9 +16,9 @@ public sealed record TypeNameROptions
     /// <param name="excludedNamespaces"></param>
     public TypeNameROptions(
         IReadOnlyDictionary<Type, string>? predefinedTypeNames = null,
-        string[]? excludedNamespaces = null)
+        IEnumerable<string>? excludedNamespaces = null)
     {
-        PredefinedTypeNames = (predefinedTypeNames?.ToDictionary(_ => _.Key, _ => _.Value) ?? new Dictionary<Type, string>(18)
+        PredefinedTypeNames = (predefinedTypeNames?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<Type, string>(18)
         {
             { typeof(string), "string" },
             { typeof(object), "object" },

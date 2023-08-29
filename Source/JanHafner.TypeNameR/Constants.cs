@@ -24,6 +24,8 @@ internal static class Constants
     
     public const string NullWithLeadingSpace = " null";
     
+    public const string ColonWithEndingSpace = ": ";
+    
     public const char LeftParenthesis = '(';
 
     public const char RightParenthesis = ')';
