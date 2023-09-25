@@ -11,8 +11,8 @@ namespace JanHafner.TypeNameR.Benchmark.Benchmarks;
 [SimpleJob(RuntimeMoniker.Net80)]
 public class CommonBenchmarks
 {
-    // [GlobalSetup]
-    // public void GlobalSetup()
-    // {
-    // }
+    [GlobalSetup]
+    public void GlobalSetup()
+    {
+    }
 }

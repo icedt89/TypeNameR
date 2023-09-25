@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 
-#if NET6_0 
+#if NET6_0
 using NullabilityInfo = Nullability.NullabilityInfoEx;
 #endif
 

@@ -8,37 +8,24 @@ namespace JanHafner.TypeNameR.Helper;
 
 internal static class StackTraceHelper
 {
-#pragma warning disable S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static MethodInfo[] GetPossibleMethods(this Type type)
-        => type.GetMethods(BindingFlags.Public
-                           | BindingFlags.NonPublic
-                           | BindingFlags.Static
-                           | BindingFlags.Instance
-                           | BindingFlags.DeclaredOnly);
-#pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsStackTraceHidden(this MemberInfo member)
         => member.IsDefined(typeof(StackTraceHiddenAttribute), false);
     
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsHidden(this MethodBase method) 
         => method.MethodImplementationFlags.HasFlag(MethodImplAttributes.AggressiveInlining)
            || method.IsStackTraceHidden()
            || (method.DeclaringType?.IsStackTraceHidden() ?? false);
     
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsSkippable(this MethodBase methodBase, NameRControlFlags nameRControlFlags, string[] namespaces)
         => (!nameRControlFlags.HasFlag(NameRControlFlags.IncludeHiddenStackFrames)
-           && methodBase.IsHidden()) || (nameRControlFlags.HasFlag(NameRControlFlags.ExcludeStackFrameMethodsByNamespace)
+           && methodBase.IsHidden()) || (namespaces.Length > 0 && nameRControlFlags.HasFlag(NameRControlFlags.ExcludeStackFrameMethodsByNamespace)
                                                                    && methodBase.IsNamespaceExcluded(namespaces));
 
-    public static bool IsNamespaceExcluded(this MethodBase methodBase, ReadOnlySpan<string> namespaces)
+    public static bool IsNamespaceExcluded(this MethodBase methodBase, string[] namespaces)
     {
-        if (namespaces.Length == 0)
-        {
-            return false;
-        }
-        
         ReadOnlySpan<char> declaringTypeNamespace = methodBase.DeclaringType?.Namespace;
         if(declaringTypeNamespace.Length == 0)
         {
@@ -56,12 +43,13 @@ internal static class StackTraceHelper
         return false;
     }
 
-    public static (StackFrame StackFrame, MethodBase? Method, uint CallDepth)[] FlattenRecursionAndFilterUnnecessaryStackFrames(this Span<StackFrame> stackFrames, NameRControlFlags nameRControlFlags, string[] namespaces)
+    public static (StackFrame StackFrame, MethodBase? Method, uint CallDepth)[] FlattenRecursionAndFilterUnnecessaryStackFrames(this StackFrame[] stackFrames, NameRControlFlags nameRControlFlags, string[] namespaces)
     {
         var recursiveStackFrames = new Dictionary<object, (StackFrame StackFrame, MethodBase? Method, uint CallDepth)>(stackFrames.Length);
         foreach (var stackFrame in stackFrames)
         {
             var stackFrameMethod = stackFrame.GetMethod();
+            
             if (stackFrameMethod is not null && stackFrameMethod.IsSkippable(nameRControlFlags, namespaces))
             {
                 continue;

@@ -20,7 +20,7 @@ public class DisplayOfTypeBenchmarks
 
     private Type genericComplexNestedNestedType = default!;
 
-    private TypeNameR typeNameR;
+    private ITypeNameR typeNameR;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -32,7 +32,7 @@ public class DisplayOfTypeBenchmarks
             typeof(GenericTestClass<string[,,]>.InnerNonGenericTestClass.MostInnerGenericTestClass<IReadOnlyList<KeyValuePair<string, double>>, object[,][]>[]
                 [,,]);
 
-        typeNameR = new();
+        typeNameR = GlobalBenchmarkSettings.TypeNameR ?? new TypeNameR();
     }
 
     [Benchmark]

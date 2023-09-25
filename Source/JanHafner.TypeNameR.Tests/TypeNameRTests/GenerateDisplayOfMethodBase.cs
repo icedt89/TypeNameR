@@ -29,7 +29,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateMethodDisplay(string methodName, string expected)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var methodInfo = typeof(Methods).GetMethodOrThrow(methodName);
 
@@ -45,7 +45,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GeneratePublicConstructorDisplay()
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var constructor = typeof(Methods).GetPublicParameterlessConstructor();
             var expected = ExpectsAttribute.GetExpectation(constructor);
@@ -62,7 +62,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GeneratePrivateConstructorDisplay()
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var constructor = typeof(Methods).GetPrivateParameterlessDistinguishConstructor();
             var expected = ExpectsAttribute.GetExpectation(constructor);
@@ -79,7 +79,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateStaticConstructorDisplay()
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var constructor = typeof(Methods).GetStaticParameterlessConstructor();
             var expected = ExpectsAttribute.GetExpectation(constructor);
@@ -115,11 +115,11 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         }
 
         [Theory]
-        [MemberData(nameof(GetDoesNotThrowAnExceptionTests), 500)]
+        [MemberData(nameof(GetDoesNotThrowAnExceptionTests), GlobalTestSettings.Take)]
         public void DoesNotThrowAnException(MethodBase method)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             // Act, Assert
             var generated = typeNameR.GenerateDisplay(method, NameRControlFlags.All);

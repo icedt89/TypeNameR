@@ -17,8 +17,8 @@ public class DisplayOfStackTraceBenchmarks
 {
     private Exception catchedException;
 
-    private TypeNameR typeNameR;
-
+    private ITypeNameR typeNameR;
+    
     private TypeNameR typeNameRWithStackFrameMetadataProvider;
 
     private System.Diagnostics.StackTrace stackTraceWithSourceInformation;
@@ -39,14 +39,14 @@ public class DisplayOfStackTraceBenchmarks
             stackTraceWithoutSourceInformation = new System.Diagnostics.StackTrace(exception, false);
         }
 
-        typeNameR = new();
+        typeNameR = GlobalBenchmarkSettings.TypeNameR ?? new TypeNameR();
         typeNameRWithStackFrameMetadataProvider = new(new StackFrameMetadataProvider(new PdbLocator(new FileSystem())));
     }
 
-    [Benchmark]
+    // [Benchmark]
     public void StackTrace_ToString() => stackTraceWithSourceInformation.ToString();
 
-    [Benchmark]
+    // [Benchmark]
     public void Demystify() => catchedException.Demystify();
 
     [Benchmark]

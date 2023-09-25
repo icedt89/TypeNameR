@@ -60,11 +60,7 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
         var metadataReader = metadataReaderProvider.GetMetadataReader();
 
         var methodDebugInformation = metadataReader.GetMethodDebugInformation(debugInformationHandle);
-        var sequencePoints = methodDebugInformation.GetSequencePoints().ToArray();
-        if (sequencePoints.Length == 0)
-        {
-            return null;
-        }
+        var sequencePoints = methodDebugInformation.GetSequencePoints();
 
         var bestSequencePoint = FindBestSequencePoint(ilOffset, sequencePoints);
         if (!bestSequencePoint.HasValue)
@@ -90,7 +86,7 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
         return new StackFrameMetadata(fileName, lineNumber, columnNumber);
     }
 
-    private static SequencePoint? FindBestSequencePoint(int ilOffset, ReadOnlySpan<SequencePoint> sequencePoints)
+    private static SequencePoint? FindBestSequencePoint(int ilOffset, SequencePointCollection sequencePoints)
     {
         SequencePoint? bestSequencePoint = null;
         foreach (var sequencePoint in sequencePoints)

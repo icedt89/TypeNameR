@@ -19,7 +19,7 @@ public class DisplayOfMethodBenchmarks
 
     private MethodInfo withEveryParameterKeyword;
 
-    private TypeNameR typeNameR;
+    private ITypeNameR typeNameR;
     
     [GlobalSetup]
     public void GlobalSetup()
@@ -28,7 +28,7 @@ public class DisplayOfMethodBenchmarks
         genericMethod = typeof(TestClass).GetMethodOrThrow(nameof(TestClass.GenericMethod));
         withEveryParameterKeyword = typeof(ExtensionMethodsClass).GetMethodOrThrow(nameof(ExtensionMethodsClass.MethodWithEveryParameterKeyword));
 
-        typeNameR = new();
+        typeNameR = GlobalBenchmarkSettings.TypeNameR ?? new TypeNameR();
     }
 
     // [Benchmark]

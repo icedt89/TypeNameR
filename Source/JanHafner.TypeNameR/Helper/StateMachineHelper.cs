@@ -7,8 +7,6 @@ internal static class StateMachineHelper
 {
     public static StateMachineType ResolveRealMethodFromStateMachine(this MethodInfo methodInfo, out MethodInfo? realMethodInfo)
     {
-        realMethodInfo = null;
-        
         // If the method has the desired attribute return instant
         var stateMachineType = methodInfo.GetStateMachineType(out var stateMachineImplementationType);
         if (stateMachineType != StateMachineType.None && stateMachineImplementationType is not null)
@@ -22,6 +20,8 @@ internal static class StateMachineHelper
         var generatedType = methodInfo.DeclaringType;
         if (generatedType is null)
         {
+            realMethodInfo = null;
+
             return StateMachineType.None;
         }
 
@@ -30,33 +30,44 @@ internal static class StateMachineHelper
 
     private static StateMachineType ResolveRealMethodFromStateMachineType(this Type generatedType, out MethodInfo? realMethodInfo)
     {
-        realMethodInfo = null;
-        
         // We need the type in which the state machine resides
         var originalType = generatedType.DeclaringType;
         if (originalType is null)
         {
+            realMethodInfo = null;
+
             return StateMachineType.None;
         }
 
         // ...and has a compiler generated annotation
         if (!generatedType.IsDefined(typeof(CompilerGeneratedAttribute), false))
         {
+            realMethodInfo = null;
+
             return StateMachineType.None;
         }
-
-        var possibleMethods = originalType.GetPossibleMethods().AsSpan();
+#pragma warning disable S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
+        var possibleMethods = originalType.GetMethods(BindingFlags.Public
+                                                      | BindingFlags.NonPublic
+                                                      | BindingFlags.Static
+                                                      | BindingFlags.Instance
+                                                      | BindingFlags.DeclaredOnly);
+#pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
         foreach (var possibleMethod in possibleMethods)
         {
             var stateMachineType = possibleMethod.GetStateMachineType(out var stateMachineImplementationType);
-            if (stateMachineType != StateMachineType.None && stateMachineImplementationType is not null && stateMachineImplementationType == generatedType)
+            if (stateMachineType == StateMachineType.None || stateMachineImplementationType is null || stateMachineImplementationType != generatedType)
             {
-                realMethodInfo = possibleMethod;
-
-                return stateMachineType;
+                continue;
             }
+
+            realMethodInfo = possibleMethod;
+
+            return stateMachineType;
         }
 
+        realMethodInfo = null;
+        
         return StateMachineType.None;
     }
 

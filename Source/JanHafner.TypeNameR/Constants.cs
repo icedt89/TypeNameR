@@ -60,8 +60,6 @@ internal static class Constants
 
     public const char Asterisk = '*';
 
-    public const string NewLine = "\r\n";
-
     public const string Constructor = ".ctor";
 
     public const string StaticConstructor = ".cctor";
@@ -84,7 +82,7 @@ internal static class Constants
     
     public const uint DefaultCallDepth = 1;
 
-    public const int ReturnParameterIndex = -1;
+    public const sbyte ReturnParameterIndex = -1;
 
-    public const int ThisKeywordOnlyValidOnIndex = 0;
+    public const byte ThisKeywordOnlyValidOnIndex = 0;
 }

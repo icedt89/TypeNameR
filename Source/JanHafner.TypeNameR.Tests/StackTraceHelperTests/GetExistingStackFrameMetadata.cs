@@ -4,7 +4,7 @@ using NSubstitute;
 using System.Diagnostics;
 using Xunit;
 
-namespace JanHafner.TypeNameR.Tests.TypeHelperTests;
+namespace JanHafner.TypeNameR.Tests.StackTraceHelperTests;
 
 public sealed class GetExistingStackFrameMetadata
 {

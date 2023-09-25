@@ -27,7 +27,7 @@ public sealed class FlattenRecursionAndFilterUnnecessaryStackFrames
 
             // Act
             var nonRecursiveStackFrames =
-                originalStackFrames.AsSpan().FlattenRecursionAndFilterUnnecessaryStackFrames(NameRControlFlags.None, Array.Empty<string>());
+                originalStackFrames.FlattenRecursionAndFilterUnnecessaryStackFrames(NameRControlFlags.None, Array.Empty<string>());
 
             // Assert
             nonRecursiveStackFrames.Should().HaveCount(4);
@@ -66,7 +66,7 @@ public sealed class FlattenRecursionAndFilterUnnecessaryStackFrames
         stackFrame.GetMethod().Returns(stackFrameMethod);
 
         // Act
-        var flattenedStackFrames = new[] { stackFrame }.AsSpan().FlattenRecursionAndFilterUnnecessaryStackFrames(NameRControlFlags.None, Array.Empty<string>());
+        var flattenedStackFrames = new[] { stackFrame }.FlattenRecursionAndFilterUnnecessaryStackFrames(NameRControlFlags.None, Array.Empty<string>());
 
         // Assert
         flattenedStackFrames.Should().BeEmpty();

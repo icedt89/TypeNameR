@@ -21,6 +21,7 @@ public sealed class TypeNameR : ITypeNameR
 
     private readonly TypeNameROptions typeNameROptions;
 
+    // TODO: Don`t store as field because it uses an internal cache which never gets cleared => put into method arguments where needed so gets used only during generation
     private readonly NullabilityInfoContext nullabilityInfoContext;
 
     /// <summary>
@@ -36,7 +37,7 @@ public sealed class TypeNameR : ITypeNameR
         nullabilityInfoContext = new NullabilityInfoContext();
     }
 
-    #region Type specific
+    #region Type specifics
 
     /// <inheritdoc />
     public string GenerateDisplay(Type type, bool fullTypeName, NullabilityInfo? nullabilityInfo)
@@ -45,12 +46,12 @@ public sealed class TypeNameR : ITypeNameR
 
         var stringBuilder = new StringBuilder();
 
-        ProcessTypeCore(stringBuilder, type, fullTypeName, nullabilityInfo);
-    
+        ProcessTypeCore(stringBuilder, type, fullTypeName, nullabilityInfo, null);
+        
         return stringBuilder.ToString();
     }
 
-    private void ProcessTypeCore(StringBuilder stringBuilder, Type type, bool fullTypeName, NullabilityInfo? nullabilityInfo)
+    private void ProcessTypeCore(StringBuilder stringBuilder, Type type, bool fullTypeName, NullabilityInfo? nullabilityInfo, Type[]? masterGenericTypes)
     {
         var skipTypeAndGenericsAndNullable = false;
         if (typeNameROptions.PredefinedTypeNames.TryGetValue(type, out var predefinedTypeName))
@@ -64,67 +65,62 @@ public sealed class TypeNameR : ITypeNameR
             var elementType = type.GetElementType();
             if (elementType is not null)
             {
-                if (type.IsArray)
-                {
-                    ProcessTypeCore(stringBuilder, elementType, fullTypeName, nullabilityInfo?.ElementType);
-        
-                    stringBuilder.Append(Constants.LeftSquareBracket)
-                        .Append(Constants.Comma, type.GetArrayRank() - 1)
-                        .Append(Constants.RightSquareBracket);
-        
-                    skipTypeAndGenericsAndNullable = true;
-                }
-                else
-                {
-                    ProcessTypeCore(stringBuilder, elementType, fullTypeName, nullabilityInfo);
-
-                    if (type.IsPointer)
-                    {
-                        stringBuilder.Append(Constants.Asterisk);
-                    }
+                var isArray = type.IsArray;
                 
-                    skipTypeAndGenericsAndNullable = true;
-                }                
+                ProcessTypeCore(stringBuilder, elementType, fullTypeName, isArray ? nullabilityInfo?.ElementType : nullabilityInfo, null);
+                
+                if (isArray)
+                {
+                    stringBuilder.AppendArrayRank(type.GetArrayRank());
+                }
+                else if(type.IsPointer)
+                {
+                    stringBuilder.AppendPointerMarker();
+                }
+                
+                skipTypeAndGenericsAndNullable = true;
             }
         }
 
         var nullableUnderlyingType = Nullable.GetUnderlyingType(type);
         if (!skipTypeAndGenericsAndNullable && nullableUnderlyingType is not null)
         {
-            ProcessTypeCore(stringBuilder, nullableUnderlyingType, fullTypeName, null);
+            ProcessTypeCore(stringBuilder, nullableUnderlyingType, fullTypeName, null, null);
             
-            stringBuilder.Append(Constants.QuestionMark);
+            stringBuilder.AppendNullableMarker();
 
             return;
         }
 
         if (!skipTypeAndGenericsAndNullable)
         {
+            var processGenerics = DetermineGenericsProcessingInfo(type, ref masterGenericTypes, out var startGenericParameterIndex, out var genericParametersCount);
+
             // Nested
             if (type.DeclaringType is not null && !type.IsGenericParameter)
             {
-                ProcessTypeCore(stringBuilder, type.DeclaringType, true, null);
+                ProcessTypeCore(stringBuilder, type.DeclaringType, true, null, masterGenericTypes);
 
-                stringBuilder.Append(Constants.Plus);
+                stringBuilder.AppendPlus();
             }
             
             // Full type name
             if (fullTypeName && type.DeclaringType is null && type.Namespace is not null)
             {
-                stringBuilder.Append(type.Namespace)
-                    .Append(Constants.FullStop);
+                stringBuilder.AppendNamespace(type.Namespace);
             }
 
             var typeNameSpan = type.Name.AsSpan();
             if (type.IsGenericType)
             {
-                stringBuilder.Append(typeNameSpan.RemoveGenericParametersCount());
-
-                ProcessGenerics(stringBuilder, type.GetGenericArguments(), nullabilityInfo?.GenericTypeArguments);
+                typeNameSpan = typeNameSpan.RemoveGenericParametersCount();
             }
-            else
+            
+            stringBuilder.Append(typeNameSpan);
+
+            if (processGenerics && masterGenericTypes is not null)
             {
-                stringBuilder.Append(typeNameSpan);
+                ProcessGenerics(stringBuilder, masterGenericTypes, nullabilityInfo?.GenericTypeArguments, startGenericParameterIndex, genericParametersCount);
             }
         }
         
@@ -141,15 +137,45 @@ public sealed class TypeNameR : ITypeNameR
 
         if (type == compareType)
         {
-            stringBuilder.Append(Constants.QuestionMark);
+            stringBuilder.AppendNullableMarker();
         }
     }
-
-    private void ProcessGenerics(StringBuilder stringBuilder, Type[] genericTypes, NullabilityInfo[]? genericTypesNullability)
+    
+    private bool DetermineGenericsProcessingInfo(Type type, ref Type[]? masterGenericTypes, out int startGenericParameterIndex, out int genericParametersCount)
     {
-        stringBuilder.Append(Constants.LessThanSign);
+        // Ignore type if it is not generic (has no inherited generic types and not defined any directly)
+        if (!type.IsGenericType)
+        {
+            startGenericParameterIndex = 0;
+            genericParametersCount = 0;
 
-        for (var genericParameterIndex = 0; genericParameterIndex < genericTypes.Length; genericParameterIndex++)
+            return false;
+        }
+
+        var typeGenericArguments = type.GetGenericArguments(); 
+
+        // Get generic arguments if we have them not yet resolved.
+        // This parameter serves as the "master"-lookup for nested types, so we resolve it just once for the most inner type and reuse it for the nested types.
+        // This is necessary because the "real"-types can not be resolved from the declaring type.
+        masterGenericTypes ??= typeGenericArguments;
+        
+        startGenericParameterIndex = 0;
+        genericParametersCount = typeGenericArguments.Length;
+
+        // If the type is nested and the declaring type is generic, we need to strip out the inherited generic arguments
+        if (type.DeclaringType is not null && type.DeclaringType.IsGenericType)
+        {
+            startGenericParameterIndex = type.DeclaringType.GetGenericArguments().Length;
+        }
+
+        return startGenericParameterIndex < genericParametersCount;
+    }
+
+    private void ProcessGenerics(StringBuilder stringBuilder, Type[] genericTypes, NullabilityInfo[]? genericTypesNullability, int startGenericParameterIndex, int genericParametersCount)
+    {
+        stringBuilder.AppendLessThanSign();
+
+        for (var genericParameterIndex = startGenericParameterIndex; genericParameterIndex < genericParametersCount; genericParameterIndex++)
         {
             NullabilityInfo? genericTypeNullabilityInfo = null;
             if (genericTypesNullability is not null && genericParameterIndex < genericTypesNullability.Length)
@@ -157,15 +183,15 @@ public sealed class TypeNameR : ITypeNameR
                 genericTypeNullabilityInfo = genericTypesNullability[genericParameterIndex];
             }
 
-            ProcessTypeCore(stringBuilder, genericTypes[genericParameterIndex], false, genericTypeNullabilityInfo);
+            ProcessTypeCore(stringBuilder, genericTypes[genericParameterIndex], false, genericTypeNullabilityInfo, null);
 
-            if (genericParameterIndex < genericTypes.Length - 1)
+            if (genericParameterIndex < genericParametersCount - 1)
             {
-                stringBuilder.Append(Constants.CommaWithEndingSpace);
+                stringBuilder.AppendCommaWithEndingSpace();
             }
         }
 
-        stringBuilder.Append(Constants.GreaterThanSign);
+        stringBuilder.AppendGreaterThanSign();
     }
 
     #endregion
@@ -216,7 +242,7 @@ public sealed class TypeNameR : ITypeNameR
                 throw new NotSupportedException($"Method type '{methodBase.GetType().Name}' is not supported");
         }
         
-        stringBuilder.Append(Constants.LeftParenthesis);
+        stringBuilder.AppendLeftParenthesis();
 
         var parameters = methodBase.GetParameters();
         if (parameters.Length > 0)
@@ -224,7 +250,7 @@ public sealed class TypeNameR : ITypeNameR
             ProcessParameters(stringBuilder, parameters, nameRControlFlags);
         }
 
-        stringBuilder.Append(Constants.RightParenthesis);
+        stringBuilder.AppendRightParenthesis();
     }
     
     private void ProcessMethod(StringBuilder stringBuilder, MethodInfo method, StateMachineType stateMachineType, NameRControlFlags nameRControlFlags)
@@ -233,28 +259,30 @@ public sealed class TypeNameR : ITypeNameR
         
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeAsyncModifier) && stateMachineType.HasFlag(StateMachineType.Async))
         {
-            stringBuilder.Append(Constants.AsyncWithEndingSpace);
+            stringBuilder.AppendAsyncWithEndingSpace();
         }
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeReturnParameter))
         {
             ProcessParameter(stringBuilder, method.ReturnParameter, nameRControlFlags);
 
-            stringBuilder.Append(Constants.Space);
+            stringBuilder.AppendSpace();
         }
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.PrependFullTypeName) && method.DeclaringType is not null)
         {
-            ProcessTypeCore(stringBuilder, method.DeclaringType, true, null);
+            ProcessTypeCore(stringBuilder, method.DeclaringType, true, null, null);
             
-            stringBuilder.Append(Constants.FullStop);
+            stringBuilder.AppendFullStop();
         }
 
         stringBuilder.Append(method.Name);
 
         if (method.IsGenericMethod)
         {
-            ProcessGenerics(stringBuilder, method.GetGenericArguments(), null);
+            var genericArguments = method.GetGenericArguments();
+            
+            ProcessGenerics(stringBuilder, genericArguments, null, 0, genericArguments.Length);
         }
     }
 
@@ -264,19 +292,19 @@ public sealed class TypeNameR : ITypeNameR
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.PrependFullTypeName) && constructor.DeclaringType is not null)
         {
-            ProcessTypeCore(stringBuilder, constructor.DeclaringType, true, null);
+            ProcessTypeCore(stringBuilder, constructor.DeclaringType, true, null, null);
             
-            stringBuilder.Append(Constants.FullStop);
+            stringBuilder.AppendPlus();
         }
 
         if (!constructor.IsStatic)
         {
-            stringBuilder.Append(Constants.Constructor);
+            stringBuilder.AppendConstructor();
 
             return;
         }
 
-        stringBuilder.Append(Constants.StaticConstructor);
+        stringBuilder.AppendStaticConstructor();
     }
 
     private static void ProcessMethodModifier(StringBuilder stringBuilder, MethodBase methodBase, NameRControlFlags nameRControlFlags)
@@ -286,17 +314,17 @@ public sealed class TypeNameR : ITypeNameR
             // Mutually exclusive, a method cant be "private" and "public" and the same time
             if (methodBase.IsPrivate)
             {
-                stringBuilder.Append(Constants.PrivateWithEndingSpace);
+                stringBuilder.AppendPrivateWithEndingSpace();
             }
             else if (methodBase.IsPublic)
             {
-                stringBuilder.Append(Constants.PublicWithEndingSpace);
+                stringBuilder.AppendPublicWithEndingSpace();
             }
         }
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeStaticModifier) && methodBase.IsStatic)
         {
-            stringBuilder.Append(Constants.StaticWithEndingSpace);
+            stringBuilder.AppendStaticWithEndingSpace();
         }
     }
 
@@ -308,7 +336,7 @@ public sealed class TypeNameR : ITypeNameR
 
             if (parameterIndex < parameters.Length - 1)
             {
-                stringBuilder.Append(Constants.CommaWithEndingSpace);
+                stringBuilder.AppendCommaWithEndingSpace();
             }
         }
     }
@@ -322,15 +350,14 @@ public sealed class TypeNameR : ITypeNameR
 
         var nullabilityInfo = nullabilityInfoContext.Create(parameterInfo);
 
-        ProcessTypeCore(stringBuilder, parameterInfo.ParameterType, false, nullabilityInfo);
+        ProcessTypeCore(stringBuilder, parameterInfo.ParameterType, false, nullabilityInfo, null);
 
         if (parameterInfo.Position == Constants.ReturnParameterIndex)
         {
             return;
         }
 
-        stringBuilder.Append(Constants.Space)
-                     .Append(parameterInfo.Name);
+        stringBuilder.AppendParameterName(parameterInfo.Name!);
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeParameterDefaultValue))
         {
@@ -346,7 +373,7 @@ public sealed class TypeNameR : ITypeNameR
             && nameRControlFlags.HasFlag(NameRControlFlags.IncludeThisKeyword)
             && parameterInfo.Member.IsDefined(typeof(ExtensionAttribute), false))
         {
-            stringBuilder.Append(Constants.ThisWithEndingSpace);
+            stringBuilder.AppendThisWithEndingSpace();
 
             // Support "this in" and "this ref"
             if (!parameterInfo.IsIn && !parameterInfo.ParameterType.IsByRef)
@@ -360,14 +387,14 @@ public sealed class TypeNameR : ITypeNameR
         {
             if (parameterInfo.IsOut)
             {
-                stringBuilder.Append(Constants.OutWithEndingSpace);
+                stringBuilder.AppendOutWithEndingSpace();
 
                 return;
             }
 
             if (parameterInfo.IsIn)
             {
-                stringBuilder.Append(Constants.InWithEndingSpace);
+                stringBuilder.AppendInWithEndingSpace();
 
                 return;
             }    
@@ -377,17 +404,17 @@ public sealed class TypeNameR : ITypeNameR
         // The "ref" keyword is also valid on return parameters
         if (parameterInfo.ParameterType.IsByRef)
         {
-            stringBuilder.Append(Constants.RefWithEndingSpace);
+            stringBuilder.AppendRefWithEndingSpace();
 
             return;
         }
 
         // The "params" keyword is only valid on non return parameter
-        if (parameterInfo.Position > Constants.ReturnParameterIndex 
+        if (parameterInfo.Position > Constants.ReturnParameterIndex
             && nameRControlFlags.HasFlag(NameRControlFlags.IncludeParamsKeyword)
             && parameterInfo.IsDefined(typeof(ParamArrayAttribute), false))
         {
-            stringBuilder.Append(Constants.ParamsWithEndingSpace);
+            stringBuilder.AppendParamsWithEndingSpace();
         }
     }
 
@@ -398,14 +425,11 @@ public sealed class TypeNameR : ITypeNameR
             return;
         }
 
-        stringBuilder.Append(Constants.Space);
+        stringBuilder.AppendSpace();
 
         if (parameterInfo.DefaultValue is string @string)
         {
-            // The compiler will join the constants at the call-site
-            stringBuilder.Append(Constants.EqualsSignWithEndingSpace + Constants.QuotationMark)
-                         .Append(@string)
-                         .Append(Constants.QuotationMark);
+            stringBuilder.AppendQuotedParameterValue(@string);
 
             return;
         }
@@ -414,20 +438,17 @@ public sealed class TypeNameR : ITypeNameR
         {
             if (parameterInfo.ParameterType.IsValueType && Nullable.GetUnderlyingType(parameterInfo.ParameterType) is null)
             {
-                // The compiler will join the constants at the call-site
-                stringBuilder.Append(Constants.EqualsSign + Constants.DefaultWithLeadingSpace);
+                stringBuilder.AppendEqualsDefaultWithLeadingSpace();
             }
             else
             {
-                // The compiler will join the constants at the call-site
-                stringBuilder.Append(Constants.EqualsSign + Constants.NullWithLeadingSpace);
+                stringBuilder.AppendEqualsNullWithLeadingSpace();
             }
 
             return;
         }
 
-        stringBuilder.Append(Constants.EqualsSignWithEndingSpace)
-                     .Append(parameterInfo.DefaultValue);
+        stringBuilder.AppendEqualsValue(parameterInfo.DefaultValue);
     }
 
     #endregion
@@ -460,7 +481,7 @@ public sealed class TypeNameR : ITypeNameR
 
     private void ProcessStackTrace(StringBuilder stringBuilder, System.Diagnostics.StackTrace stackTrace, NameRControlFlags nameRControlFlags)
     {
-        var recursiveStackTrace = stackTrace.GetFrames().AsSpan().FlattenRecursionAndFilterUnnecessaryStackFrames(nameRControlFlags, typeNameROptions.ExcludedNamespaces);
+        var recursiveStackTrace = stackTrace.GetFrames().FlattenRecursionAndFilterUnnecessaryStackFrames(nameRControlFlags, typeNameROptions.ExcludedNamespaces);
         for (var stackFrameIndex = 0; stackFrameIndex < recursiveStackTrace.Length; stackFrameIndex++)
         {
             var recursiveStackFrame = recursiveStackTrace[stackFrameIndex];
@@ -469,19 +490,18 @@ public sealed class TypeNameR : ITypeNameR
             
             if (stackFrameIndex < recursiveStackTrace.Length - 1)
             {
-                stringBuilder.Append(Constants.NewLine);
+                stringBuilder.AppendNewLine();
             }
         }
     }
 
     private void ProcessStackFrame(StringBuilder stringBuilder, StackFrame stackFrame, MethodBase? methodBase, uint callDepth, NameRControlFlags nameRControlFlags)
     {
-        // The compiler will join the constants at the call-site
-        stringBuilder.Append(Constants.Indent + Constants.AtWithEndingSpace);
+        stringBuilder.AppendStackFramePreamble();
         
         if (methodBase is null)
         {
-            stringBuilder.Append(Constants.UnknownStackFrameName);
+            stringBuilder.AppendUnknownStackFrameName();
         }
         else
         {
@@ -489,13 +509,12 @@ public sealed class TypeNameR : ITypeNameR
             
             if (stateMachineType.HasFlag(StateMachineType.Iterator))
             {
-                stringBuilder.Append(Constants.MoveNextCallSuffix);
+                stringBuilder.AppendMoveNextCallSuffix();
             }
 
             if (callDepth > Constants.DefaultCallDepth)
             {
-                stringBuilder.Append(Constants.RecursionMarkWithLeadingAndEndingSpace)
-                    .Append(callDepth);
+                stringBuilder.AppendCallDepth(callDepth);
             }
         }
 
@@ -515,22 +534,7 @@ public sealed class TypeNameR : ITypeNameR
             return;
         }
 
-        stringBuilder.Append(Constants.InSourceWithLeadingAndEndingSpace)
-            .Append(stackFrameMetadata.Value.FileName);
-
-        if (stackFrameMetadata.Value.LineNumber == 0)
-        {
-            return;
-        }
-
-        stringBuilder.Append(Constants.LineWithEndingSpace)
-            .Append(stackFrameMetadata.Value.LineNumber);
-
-        if (stackFrameMetadata.Value.ColumnNumber > 0)
-        {
-            stringBuilder.Append(Constants.Colon)
-                .Append(stackFrameMetadata.Value.ColumnNumber);
-        }
+        stringBuilder.AppendStackFrameMetadata(stackFrameMetadata.Value);
     }
 
     #endregion
@@ -547,9 +551,9 @@ public sealed class TypeNameR : ITypeNameR
         var stringBuilder = new StringBuilder();
 
         // Write exception header
-        ProcessTypeCore(stringBuilder, exception.GetType(), true, null);
+        ProcessTypeCore(stringBuilder, exception.GetType(), true, null, null);
 
-        stringBuilder.Append(Constants.ColonWithEndingSpace).AppendLine(exception.Message);
+        stringBuilder.AppendExceptionMessage(exception.Message);
 
         // Write exception stacktrace
         ProcessStackTrace(stringBuilder, stackTrace, nameRControlFlags);
@@ -557,7 +561,7 @@ public sealed class TypeNameR : ITypeNameR
         return stringBuilder.ToString();
     }
 
-        /// <inheritdoc />
+    /// <inheritdoc />
     public TException RewriteStackTrace<TException>(TException exception,
                                                     NameRControlFlags nameRControlFlags)
         where TException : Exception

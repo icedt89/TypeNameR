@@ -46,26 +46,27 @@ public sealed class GenerateDisplayOfType
     [InlineData(typeof(GenericTestClass<>), "GenericTestClass<T>")]
     [InlineData(typeof(GenericTestClass<TestClass>), "GenericTestClass<TestClass>")]
     [InlineData(typeof(GenericTestClass<>.InnerNonGenericTestClass),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass<T>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass")]
     [InlineData(typeof(GenericTestClass<>.InnerNonGenericTestClass.MostInnerGenericTestClass<,>),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass<T>+MostInnerGenericTestClass<T, R, M>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass+MostInnerGenericTestClass<R, M>")]
     [InlineData(typeof(GenericTestClass<double?>), "GenericTestClass<double?>")]
     [InlineData(typeof(GenericTestClass<double?>.InnerNonGenericTestClass),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass<double?>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<double?>+InnerNonGenericTestClass")]
     [InlineData(typeof(GenericTestClass<double?>.InnerNonGenericTestClass.MostInnerGenericTestClass<double?, string>),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass<T>+MostInnerGenericTestClass<double?, double?, string>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<double?>+InnerNonGenericTestClass+MostInnerGenericTestClass<double?, string>")]
     [InlineData(typeof(GenericTestClass<string[]>), "GenericTestClass<string[]>")]
     [InlineData(typeof(GenericTestClass<string[]>.InnerNonGenericTestClass),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass<string[]>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<string[]>+InnerNonGenericTestClass")]
     [InlineData(typeof(GenericTestClass<string[]>.InnerNonGenericTestClass.MostInnerGenericTestClass<IReadOnlyList<double?>, object[]>),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass<T>+MostInnerGenericTestClass<string[], IReadOnlyList<double?>, object[]>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<string[]>+InnerNonGenericTestClass+MostInnerGenericTestClass<IReadOnlyList<double?>, object[]>")]
     [InlineData(typeof(GenericTestClass<string[]>[]), "GenericTestClass<string[]>[]")]
     [InlineData(typeof(GenericTestClass<string[]>.InnerNonGenericTestClass[]),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass<string[]>[]")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<string[]>+InnerNonGenericTestClass[]")]
     [InlineData(typeof(GenericTestClass<string[]>.InnerNonGenericTestClass.MostInnerGenericTestClass<IReadOnlyList<double?>, object[]>[]),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass<T>+MostInnerGenericTestClass<string[], IReadOnlyList<double?>, object[]>[]")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<string[]>+InnerNonGenericTestClass+MostInnerGenericTestClass<IReadOnlyList<double?>, object[]>[]")]
+    // ISSUE: Array is reversed
     [InlineData(typeof(GenericTestClass<string[,]>.InnerNonGenericTestClass.MostInnerGenericTestClass<IReadOnlyList<double?>, object[,][]>[][,,]),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass<T>+MostInnerGenericTestClass<string[,], IReadOnlyList<double?>, object[][,]>[,,][]")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<string[,]>+InnerNonGenericTestClass+MostInnerGenericTestClass<IReadOnlyList<double?>, object[][,]>[,,][]")]
     [InlineData(typeof(TestStruct), "TestStruct")]
     [InlineData(typeof(TestStruct?), "TestStruct?")]
     [InlineData(typeof(TestStruct.InnerTestStruct?), "JanHafner.TypeNameR.BenchmarkAndTestUtils.TestStruct+InnerTestStruct?")]
@@ -74,37 +75,46 @@ public sealed class GenerateDisplayOfType
     [InlineData(typeof(GenericTestStruct<>), "GenericTestStruct<T>")]
     [InlineData(typeof(GenericTestStruct<TestClass>), "GenericTestStruct<TestClass>")]
     [InlineData(typeof(GenericTestStruct<>.InnerNonGenericTestStruct),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<T>+InnerNonGenericTestStruct<T>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<T>+InnerNonGenericTestStruct")]
     [InlineData(typeof(GenericTestStruct<>.InnerNonGenericTestStruct.MostInnerGenericTestStruct<,>),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<T>+InnerNonGenericTestStruct<T>+MostInnerGenericTestStruct<T, R, M>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<T>+InnerNonGenericTestStruct+MostInnerGenericTestStruct<R, M>")]
     [InlineData(typeof(GenericTestStruct<double?>), "GenericTestStruct<double?>")]
     [InlineData(typeof(GenericTestStruct<double?>.InnerNonGenericTestStruct),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<T>+InnerNonGenericTestStruct<double?>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<double?>+InnerNonGenericTestStruct")]
     [InlineData(typeof(GenericTestStruct<double?>.InnerNonGenericTestStruct.MostInnerGenericTestStruct<double?, string>),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<T>+InnerNonGenericTestStruct<T>+MostInnerGenericTestStruct<double?, double?, string>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<double?>+InnerNonGenericTestStruct+MostInnerGenericTestStruct<double?, string>")]
     [InlineData(typeof(GenericTestStruct<string[]>), "GenericTestStruct<string[]>")]
     [InlineData(typeof(GenericTestStruct<string[]>.InnerNonGenericTestStruct),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<T>+InnerNonGenericTestStruct<string[]>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<string[]>+InnerNonGenericTestStruct")]
     [InlineData(typeof(GenericTestStruct<string[]>.InnerNonGenericTestStruct.MostInnerGenericTestStruct<IReadOnlyList<double?>, object[]>),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<T>+InnerNonGenericTestStruct<T>+MostInnerGenericTestStruct<string[], IReadOnlyList<double?>, object[]>")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<string[]>+InnerNonGenericTestStruct+MostInnerGenericTestStruct<IReadOnlyList<double?>, object[]>")]
     [InlineData(typeof(GenericTestStruct<string[]>[]), "GenericTestStruct<string[]>[]")]
     [InlineData(typeof(GenericTestStruct<string[]>.InnerNonGenericTestStruct[]),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<T>+InnerNonGenericTestStruct<string[]>[]")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<string[]>+InnerNonGenericTestStruct[]")]
     [InlineData(typeof(GenericTestStruct<string[]>.InnerNonGenericTestStruct.MostInnerGenericTestStruct<IReadOnlyList<double?>, object[]>[]),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<T>+InnerNonGenericTestStruct<T>+MostInnerGenericTestStruct<string[], IReadOnlyList<double?>, object[]>[]")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<string[]>+InnerNonGenericTestStruct+MostInnerGenericTestStruct<IReadOnlyList<double?>, object[]>[]")]
+    // ISSUE: Array is reversed
     [InlineData(typeof(GenericTestStruct<string[,]>.InnerNonGenericTestStruct.MostInnerGenericTestStruct<IReadOnlyList<double?>, object[,][]>[][,,]),
-        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<T>+InnerNonGenericTestStruct<T>+MostInnerGenericTestStruct<string[,], IReadOnlyList<double?>, object[][,]>[,,][]")]
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<string[,]>+InnerNonGenericTestStruct+MostInnerGenericTestStruct<IReadOnlyList<double?>, object[][,]>[,,][]")]
+    [InlineData(typeof(GenericTestStruct<string[]>.InnerNonGenericTestStruct.MostInnerGenericTestStruct<IReadOnlyList<double?>, int>),
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<string[]>+InnerNonGenericTestStruct+MostInnerGenericTestStruct<IReadOnlyList<double?>, int>")]
+    [InlineData(typeof(NonGenericTestStruct.InnerNonGenericTestStruct.MostInnerGenericTestStruct<int, object>),
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.NonGenericTestStruct+InnerNonGenericTestStruct+MostInnerGenericTestStruct<int, object>")]
+    [InlineData(typeof(NonGenericTestStruct.InnerGenericTestStruct<IReadOnlyList<double?>, int>),
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.NonGenericTestStruct+InnerGenericTestStruct<IReadOnlyList<double?>, int>")]
+    [InlineData(typeof(NonGenericTestStruct.InnerGenericTestStruct<IReadOnlyList<double?>, int>.MostInnerNonGenericTestStruct),
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.NonGenericTestStruct+InnerGenericTestStruct<IReadOnlyList<double?>, int>+MostInnerNonGenericTestStruct")]
     [InlineData(typeof(string[]), "string[]")]
     [InlineData(typeof(string[][]), "string[][]")]
     [InlineData(typeof(string[,]), "string[,]")]
     [InlineData(typeof(string[,,]), "string[,,]")]
-    [InlineData(typeof(string[,,][,]), "string[,][,,]")] // Array type is reversed
-    [InlineData(typeof(string[,][,,]), "string[,,][,]")] // Array type is reversed
-    [InlineData(typeof(string[][,,][,]), "string[,][,,][]")] // Array type is reversed
+    [InlineData(typeof(string[,,][,]), "string[,][,,]")] // ISSUE: Array is reversed
+    [InlineData(typeof(string[,][,,]), "string[,,][,]")] // ISSUE: Array is reversed
+    [InlineData(typeof(string[][,,][,]), "string[,][,,][]")] // ISSUE: Array is reversed
     public void GenerateTypeDisplay(Type type, string expectedReadableName)
     {
         // Arrange
-        var typeNameR = new TypeNameR();
+        var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
         // Act
         var generated = typeNameR.GenerateDisplay(type, false, null);
@@ -139,11 +149,11 @@ public sealed class GenerateDisplayOfType
     }
 
     [Theory]
-    [MemberData(nameof(GetDoesNotThrowAnExceptionTests), 500)]
+    [MemberData(nameof(GetDoesNotThrowAnExceptionTests), GlobalTestSettings.Take)]
     public void DoesNotThrowAnException(Type type)
     {
         // Arrange
-        var typeNameR = new TypeNameR();
+        var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
         // Act, Assert
         var generated = typeNameR.GenerateDisplay(type, false, null);

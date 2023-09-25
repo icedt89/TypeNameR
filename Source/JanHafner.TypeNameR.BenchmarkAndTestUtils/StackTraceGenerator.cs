@@ -6,7 +6,7 @@ namespace JanHafner.TypeNameR.BenchmarkAndTestUtils;
 public static class StackTraceGenerator
 {
     [DoesNotReturn]
-    public static Task<TResult> CallRecursiveGenericMethodAsync<TResult>(int recursionDepth = 1, int stopAt = 10)
+    public static Task<TResult> CallRecursiveGenericMethodAsync<TResult>(int? recursionDepth = 1, int stopAt = 10)
     {
         if (recursionDepth == stopAt)
         {
@@ -18,7 +18,7 @@ public static class StackTraceGenerator
     
     [DoesNotReturn]
     [AsyncStateMachine(typeof(StackTraceGenerator))]
-    public static Task<TResult> CallRecursiveGenericMethodWithAsyncStateMachineAttributeAsync<TResult>(int recursionDepth = 1, int stopAt = 10)
+    public static Task<TResult> CallRecursiveGenericMethodWithAsyncStateMachineAttributeAsync<TResult>(int? recursionDepth = 1, int stopAt = 10)
     {
         if (recursionDepth == stopAt)
         {

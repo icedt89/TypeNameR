@@ -8,9 +8,10 @@ public static class Program
     public static void Main()
     {
         // BenchmarkRunner.Run<CommonBenchmarks>();
-        BenchmarkRunner.Run<DisplayOfTypeBenchmarks>();
+        // BenchmarkRunner.Run<DisplayOfTypeBenchmarks>();
         // BenchmarkRunner.Run<DisplayOfMethodBenchmarks>();
         // BenchmarkRunner.Run<DisplayOfStackTraceBenchmarks>();
+        BenchmarkRunner.Run<DisplayOfExceptionBenchmarks>();
         // BenchmarkRunner.Run<IsGenericMethodVersusGetGenericArgumentsBenchmarks>();
         // BenchmarkRunner.Run<IsGenericTypeVersusGetGenericArgumentsBenchmarks>();
 

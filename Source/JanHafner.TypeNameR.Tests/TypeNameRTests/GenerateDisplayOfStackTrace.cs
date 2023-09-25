@@ -21,7 +21,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
                 stackTrace = new System.Diagnostics.StackTrace(stackOverflowException, true);
             }
 
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             // Act
             var generated = typeNameR.GenerateDisplay(stackTrace, NameRControlFlags.All);
@@ -34,7 +34,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateTheSameStackTraceAsDemystifier()
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             try
             {

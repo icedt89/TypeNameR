@@ -29,7 +29,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateStringParameterDisplay(string methodName, int parameterIndex, string expected)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var parameter = typeof(StringMethods).GetParameter(methodName, parameterIndex);
 
@@ -46,7 +46,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateRefStringReturnParameterDisplay(string methodName, string expected)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var parameter = typeof(StringMethods).GetMethodOrThrow(methodName).ReturnParameter;
 
@@ -62,7 +62,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateIntParameterDisplay(string methodName, int parameterIndex, string expected)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var parameter = typeof(IntMethods).GetParameter(methodName, parameterIndex);
 
@@ -79,7 +79,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateRefIntReturnParameterDisplay(string methodName, string expected)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var parameter = typeof(IntMethods).GetMethodOrThrow(methodName).ReturnParameter;
 
@@ -95,7 +95,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateTestClassParameterDisplay(string methodName, int parameterIndex, string expected)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var parameter = typeof(TestClassMethods).GetParameter(methodName, parameterIndex);
 
@@ -112,7 +112,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateRefTestClassReturnParameterDisplay(string methodName, string expected)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var parameter = typeof(TestClassMethods).GetMethodOrThrow(methodName).ReturnParameter;
 
@@ -128,7 +128,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateTestStructParameterDisplay(string methodName, int parameterIndex, string expected)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var parameter = typeof(TestStructMethods).GetParameter(methodName, parameterIndex);
 
@@ -145,7 +145,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateRefTestStructReturnParameterDisplay(string methodName, string expected)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var parameter = typeof(TestStructMethods).GetMethodOrThrow(methodName).ReturnParameter;
 
@@ -163,7 +163,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         public void GenerateForExtensionMethods(string methodName)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             var method = typeof(ExtensionMethodsClass).GetMethodOrThrow(methodName);
             var parameter = method.GetParameters()[0];
@@ -201,11 +201,11 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
         }
 
         [Theory]
-        [MemberData(nameof(GetDoesNotThrowAnExceptionTests), 500)]
+        [MemberData(nameof(GetDoesNotThrowAnExceptionTests), GlobalTestSettings.Take)]
         public void DoesNotThrowAnException(ParameterInfo parameter)
         {
             // Arrange
-            var typeNameR = new TypeNameR();
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
             // Act, Assert
             var generated = typeNameR.GenerateDisplay(parameter, NameRControlFlags.All);
@@ -279,7 +279,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
             public static void ArrayWithNullableItem([Expects("string?[] param1")] string?[] param1) => throw new NotImplementedException();
 
             public static void NullableArrayWithNullableItem([Expects("string?[]? param1")] string?[]? param1) => throw new NotImplementedException();
-
+            
             public static void RefArray([Expects("ref string[] param1")] ref string[] param1) => throw new NotImplementedException();
 
             public static void RefNullableArray([Expects("ref string[]? param1")] ref string[]? param1) => throw new NotImplementedException();
