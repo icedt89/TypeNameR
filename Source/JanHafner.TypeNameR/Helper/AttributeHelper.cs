@@ -18,6 +18,6 @@ internal static class AttributeHelper
 
     public static StateMachineAttribute? FindStateMachineAttribute(this MethodInfo method) => method.GetCustomAttribute<StateMachineAttribute>(false);
 
-    // TODO: Nutzen
+    [Obsolete("Use method")]
     public static TupleElementNamesAttribute? FindTupleElementNamesAttribute(this ParameterInfo parameter) => parameter.GetCustomAttribute<TupleElementNamesAttribute>(false);
 }

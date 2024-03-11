@@ -15,5 +15,6 @@ internal static class TypeHelper
         return typeName;
     }
 
+    [Obsolete("Use method")]
     public static bool IsGenericValueTuple(this Type type) => type.IsValueType && type.IsGenericType && type.IsAssignableTo(typeof(ITuple));
 }
