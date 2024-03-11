@@ -105,7 +105,9 @@ public sealed class GenerateDisplayOfType
         "JanHafner.TypeNameR.BenchmarkAndTestUtils.NonGenericTestStruct+InnerGenericTestStruct<IReadOnlyList<double?>, int>")]
     [InlineData(typeof(NonGenericTestStruct.InnerGenericTestStruct<IReadOnlyList<double?>, int>.MostInnerNonGenericTestStruct),
         "JanHafner.TypeNameR.BenchmarkAndTestUtils.NonGenericTestStruct+InnerGenericTestStruct<IReadOnlyList<double?>, int>+MostInnerNonGenericTestStruct")]
-    [InlineData(typeof(GenericTestStruct<int>.InnerGenericTestStruct<bool[]>.MoreInnerGenericTestStruct<string, char>.MoreMoreInnerGenericTestStruct.MostInnerGenericTestStruct<uint>),
+    [InlineData(
+        typeof(GenericTestStruct<int>.InnerGenericTestStruct<bool[]>.MoreInnerGenericTestStruct<string, char>.MoreMoreInnerGenericTestStruct.
+            MostInnerGenericTestStruct<uint>),
         "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<int>+InnerGenericTestStruct<bool[]>+MoreInnerGenericTestStruct<string, char>+MoreMoreInnerGenericTestStruct+MostInnerGenericTestStruct<uint>")]
     [InlineData(typeof(string[]), "string[]")]
     [InlineData(typeof(string[][]), "string[][]")]
@@ -143,20 +145,9 @@ public sealed class GenerateDisplayOfType
 
     public static IEnumerable<object[]> GetDoesNotThrowAnExceptionTests(int take)
     {
-        var types = new HashSet<Type>(take);
         var allTypes = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).SelectMany(a => a.GetExportedTypes()).ToList();
 
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        while (types.Count < take && !cts.IsCancellationRequested)
-        {
-            var index = Random.Shared.Next(0, allTypes.Count);
-            var type = allTypes[index];
-
-            types.Add(type);
-        }
-
-        foreach (var type in types)
+        foreach (var type in allTypes.RandomTake(take))
         {
             yield return [type];
         }

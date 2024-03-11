@@ -101,15 +101,16 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
                                                              | BindingFlags.Public
                                                              | BindingFlags.Static
                                                              | BindingFlags.NonPublic
-                                                             | BindingFlags.DeclaredOnly)).Take(take)
+                                                             | BindingFlags.DeclaredOnly))
                 .Cast<MethodBase>()
                 .Concat(types.SelectMany(t => t.GetConstructors(BindingFlags.Instance
                                                                 | BindingFlags.Public
                                                                 | BindingFlags.Static
                                                                 | BindingFlags.NonPublic
-                                                                | BindingFlags.DeclaredOnly)).Take(take));
+                                                                | BindingFlags.DeclaredOnly)))
+                    .ToList();
 
-            foreach (var method in methods)
+            foreach (var method in methods.RandomTake(take))
             {
                 yield return [method];
             }

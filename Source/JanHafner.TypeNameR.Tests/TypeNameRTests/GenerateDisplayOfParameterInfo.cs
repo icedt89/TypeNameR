@@ -186,15 +186,16 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
                                                                 | BindingFlags.Static
                                                                 | BindingFlags.NonPublic
                                                                 | BindingFlags.DeclaredOnly))
-                .SelectMany(m => m.GetParameters()).Take(take)
+                .SelectMany(m => m.GetParameters())
                 .Concat(types.SelectMany(t => t.GetMethods(BindingFlags.Instance
                                                            | BindingFlags.Public
                                                            | BindingFlags.Static
                                                            | BindingFlags.NonPublic
                                                            | BindingFlags.DeclaredOnly))
-                    .SelectMany(m => m.GetParameters()).Take(take));
+                    .SelectMany(m => m.GetParameters()))
+                .ToList();
 
-            foreach (var parameter in parameters)
+            foreach (var parameter in parameters.RandomTake(take))
             {
                 yield return [parameter];
             }

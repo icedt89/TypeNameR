@@ -14,7 +14,7 @@ public sealed class FindTupleElementNamesAttribute
     {
         // Arrange
         var tupleElementNamesAttribute = new TupleElementNamesAttribute([]);
-        
+
         // HINT: Using collection initializer feature will fail this test
         var parameter = Substitute.For<ParameterInfo>();
         parameter.GetCustomAttributes(typeof(TupleElementNamesAttribute), false).Returns(new[] { tupleElementNamesAttribute });
