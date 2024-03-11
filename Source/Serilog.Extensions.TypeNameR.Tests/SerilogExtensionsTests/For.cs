@@ -46,7 +46,7 @@ public sealed class For
 #pragma warning restore CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
         argumentNullException.ParamName.Should().Be(nameof(instance));
     }
-    
+
     [Fact]
     public void RethrowsExceptionOnErrorByInstance()
     {
@@ -57,16 +57,16 @@ public sealed class For
         var expectedException = Substitute.For<Exception>();
 
         throwExceptions = true;
-        
+
         typeNameR = Substitute.For<ITypeNameR>();
-        typeNameR.GenerateDisplay(instance.GetType(), fullTypeName, null)
+        typeNameR.GenerateDisplay(instance.GetType(), fullTypeName, NameRControlFlags.All)
             .Throws(expectedException);
 
         // Act, Assert
         var thrownException = Assert.Throws(expectedException.GetType(), () => CallByInstance(instance));
         thrownException.Should().BeSameAs(expectedException);
     }
-    
+
     [Fact]
     public void SelfLogsExceptionsByInstance()
     {
@@ -80,7 +80,7 @@ public sealed class For
         throwExceptions = true;
 
         typeNameR = Substitute.For<ITypeNameR>();
-        typeNameR.GenerateDisplay(instance.GetType(), fullTypeName, null)
+        typeNameR.GenerateDisplay(instance.GetType(), fullTypeName, NameRControlFlags.All)
             .Throws(expectedException);
 
         // Act, Assert
@@ -88,7 +88,7 @@ public sealed class For
         thrownException.Should().BeSameAs(expectedException);
         logger.Received(1).Verbose(thrownException, Arg.Any<string>(), instance.GetType().FullName);
     }
-    
+
     [Fact]
     public void FallsBackToForContextWithTypeByInstance()
     {
@@ -100,17 +100,17 @@ public sealed class For
         var expectedException = Substitute.For<Exception>();
 
         typeNameR = Substitute.For<ITypeNameR>();
-        typeNameR.GenerateDisplay(instance.GetType(), fullTypeName, null)
+        typeNameR.GenerateDisplay(instance.GetType(), fullTypeName, NameRControlFlags.All)
             .Throws(expectedException);
 
         // Act
         var returnedLogger = CallByInstance(instance);
-        
+
         // Assert
         logger.Received(1).ForContext(instance.GetType());
         logger.Should().BeSameAs(returnedLogger);
     }
-    
+
     [Fact]
     public void UsesTheGeneratedDisplayOfTypeByInstance()
     {
@@ -122,12 +122,12 @@ public sealed class For
         var expectedDisplay = Guid.NewGuid().ToString();
 
         typeNameR = Substitute.For<ITypeNameR>();
-        typeNameR.GenerateDisplay(instance.GetType(), fullTypeName, null)
+        typeNameR.GenerateDisplay(instance.GetType(), fullTypeName, NameRControlFlags.All)
             .Returns(expectedDisplay);
 
         // Act
         var returnedLogger = CallByInstance(instance);
-        
+
         // Assert
         logger.Received(1).ForContext(Core.Constants.SourceContextPropertyName, expectedDisplay);
         logger.Should().BeSameAs(returnedLogger);
@@ -155,7 +155,7 @@ public sealed class For
         var argumentNullException = Assert.Throws<ArgumentNullException>(() => CallByType(type));
         argumentNullException.ParamName.Should().Be(nameof(logger));
     }
-    
+
     [Fact]
     public void RethrowsExceptionOnErrorByType()
     {
@@ -166,16 +166,16 @@ public sealed class For
         var expectedException = Substitute.For<Exception>();
 
         throwExceptions = true;
-        
+
         typeNameR = Substitute.For<ITypeNameR>();
-        typeNameR.GenerateDisplay(Arg.Is<Type>(t => t == type), fullTypeName, null)
+        typeNameR.GenerateDisplay(Arg.Is<Type>(t => t == type), fullTypeName, NameRControlFlags.All)
             .Throws(expectedException);
 
         // Act, Assert
         var thrownException = Assert.Throws(expectedException.GetType(), () => CallByType(type));
         thrownException.Should().BeSameAs(expectedException);
     }
-    
+
     [Fact]
     public void SelfLogsExceptionsByType()
     {
@@ -189,7 +189,7 @@ public sealed class For
         throwExceptions = true;
 
         typeNameR = Substitute.For<ITypeNameR>();
-        typeNameR.GenerateDisplay(Arg.Is<Type>(t => t == type), fullTypeName, null)
+        typeNameR.GenerateDisplay(Arg.Is<Type>(t => t == type), fullTypeName, NameRControlFlags.All)
             .Throws(expectedException);
 
         // Act, Assert
@@ -197,7 +197,7 @@ public sealed class For
         thrownException.Should().BeSameAs(expectedException);
         logger.Received(1).Verbose(thrownException, Arg.Any<string>(), type.FullName);
     }
-    
+
     [Fact]
     public void FallsBackToForContextWithTypeByType()
     {
@@ -209,17 +209,17 @@ public sealed class For
         var expectedException = Substitute.For<Exception>();
 
         typeNameR = Substitute.For<ITypeNameR>();
-        typeNameR.GenerateDisplay(Arg.Is<Type>(t => t == type), fullTypeName, null)
+        typeNameR.GenerateDisplay(Arg.Is<Type>(t => t == type), fullTypeName, NameRControlFlags.All)
             .Throws(expectedException);
 
         // Act
         var returnedLogger = CallByType(type);
-        
+
         // Assert
         logger.Received(1).ForContext(Arg.Is<Type>(t => t == type));
         logger.Should().BeSameAs(returnedLogger);
     }
-    
+
     [Fact]
     public void UsesTheGeneratedDisplayOfTypeByType()
     {
@@ -231,12 +231,12 @@ public sealed class For
         var expectedDisplay = Guid.NewGuid().ToString();
 
         typeNameR = Substitute.For<ITypeNameR>();
-        typeNameR.GenerateDisplay(Arg.Is<Type>(t => t == type), fullTypeName, null)
+        typeNameR.GenerateDisplay(Arg.Is<Type>(t => t == type), fullTypeName, NameRControlFlags.All)
             .Returns(expectedDisplay);
 
         // Act
         var returnedLogger = CallByType(type);
-        
+
         // Assert
         logger.Received(1).ForContext(Core.Constants.SourceContextPropertyName, expectedDisplay);
         logger.Should().BeSameAs(returnedLogger);
@@ -245,8 +245,8 @@ public sealed class For
     [DebuggerStepThrough]
     private ILogger CallByInstance<T>(T instance)
         where T : notnull
-        => logger.For(instance, typeNameR, fullTypeName, throwExceptions, selfLog);
+        => logger.For(instance, typeNameR, fullTypeName, NameRControlFlags.All, throwExceptions, selfLog);
 
     [DebuggerStepThrough]
-    private ILogger CallByType(Type type) => logger.For(type, typeNameR, fullTypeName, throwExceptions, selfLog);
+    private ILogger CallByType(Type type) => logger.For(type, typeNameR, fullTypeName, NameRControlFlags.All, throwExceptions, selfLog);
 }

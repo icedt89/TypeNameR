@@ -35,7 +35,7 @@ public sealed class EnrichesTheLog
         // Assert
         logEventSinkSubstitute.Received(1).Emit(Arg.Is<LogEvent>(l
             => l.Exception == exception
-               && l.Properties.ContainsKey(ExceptionDisplayEnricher.ExceptionDisplayPropertyName)
+               && l.Properties.ContainsKey(ExceptionDisplayEnricher.DefaultExceptionDisplayPropertyName)
         ));
     }
 }

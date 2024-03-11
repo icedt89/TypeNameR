@@ -10,12 +10,12 @@ public static class ReflectionHelper
     public static ParameterInfo GetParameter(this Type type, string methodName, int parameterIndex)
         => type.GetMethodOrThrow(methodName).GetParameters()[parameterIndex];
 
-    public static ConstructorInfo GetPublicParameterlessConstructor(this Type type) 
-        => type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, Type.EmptyTypes)  ?? throw new InvalidOperationException("Constructor");
-    
+    public static ConstructorInfo GetPublicParameterlessConstructor(this Type type)
+        => type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, Type.EmptyTypes) ?? throw new InvalidOperationException("Constructor");
+
     public static ConstructorInfo GetPrivateParameterlessDistinguishConstructor(this Type type)
-        => type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, new []{ typeof(bool) })  ?? throw new InvalidOperationException("Constructor");
+        => type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, [typeof(bool)]) ?? throw new InvalidOperationException("Constructor");
 
     public static ConstructorInfo GetStaticParameterlessConstructor(this Type type)
-        => type.GetConstructor(BindingFlags.NonPublic | BindingFlags.Static, Type.EmptyTypes)  ?? throw new InvalidOperationException("Constructor");
+        => type.GetConstructor(BindingFlags.NonPublic | BindingFlags.Static, Type.EmptyTypes) ?? throw new InvalidOperationException("Constructor");
 }

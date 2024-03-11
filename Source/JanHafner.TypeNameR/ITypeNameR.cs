@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
-
 #if NET6_0
 using NullabilityInfo = Nullability.NullabilityInfoEx;
 #endif
@@ -17,9 +16,18 @@ public interface ITypeNameR
     /// </summary>
     /// <param name="type">The <see cref="Type"/>.</param>
     /// <param name="fullTypeName">Controls whether the full <see cref="Type"/> name should be used.</param>
-    /// <param name="nullabilityInfo">The <see cref="NullabilityInfo" /> used to determine nullability for reference types.</param>
+    /// <param name="nameRControlFlags">Flags to customize the process.</param>
     /// <returns>The readable display of the supplied <see cref="Type"/>.</returns>
-    string GenerateDisplay(Type type, bool fullTypeName, NullabilityInfo? nullabilityInfo);
+    string GenerateDisplay(Type type, bool fullTypeName, NameRControlFlags nameRControlFlags);
+
+    /// <summary>
+    /// Generates the readable display of the supplied <see cref="Type"/>.
+    /// </summary>
+    /// <param name="nullabilityInfo">The <see cref="NullabilityInfo" /> used to determine nullability for reference types.</param>
+    /// <param name="fullTypeName">Controls whether the full <see cref="Type"/> name should be used.</param>
+    /// <param name="nameRControlFlags">Flags to customize the process.</param>
+    /// <returns>The readable display of the supplied <see cref="Type"/>.</returns>
+    string GenerateDisplay(NullabilityInfo nullabilityInfo, bool fullTypeName, NameRControlFlags nameRControlFlags);
 
     /// <summary>
     /// Generates the readable display of the supplied <see cref="MethodBase"/>.

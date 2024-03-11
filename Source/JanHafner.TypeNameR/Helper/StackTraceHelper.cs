@@ -1,64 +1,45 @@
 ﻿using JanHafner.TypeNameR.StackTrace;
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace JanHafner.TypeNameR.Helper;
 
 internal static class StackTraceHelper
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsStackTraceHidden(this MemberInfo member)
-        => member.IsDefined(typeof(StackTraceHiddenAttribute), false);
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsHidden(this MethodBase method) 
-        => method.MethodImplementationFlags.HasFlag(MethodImplAttributes.AggressiveInlining)
-           || method.IsStackTraceHidden()
-           || (method.DeclaringType?.IsStackTraceHidden() ?? false);
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsSkippable(this MethodBase methodBase, NameRControlFlags nameRControlFlags, string[] namespaces)
-        => (!nameRControlFlags.HasFlag(NameRControlFlags.IncludeHiddenStackFrames)
-           && methodBase.IsHidden()) || (namespaces.Length > 0 && nameRControlFlags.HasFlag(NameRControlFlags.ExcludeStackFrameMethodsByNamespace)
-                                                                   && methodBase.IsNamespaceExcluded(namespaces));
+    public static bool IsHidden(this MethodBase method)
+        => method.MethodImplementationFlags.IsSet(MethodImplAttributes.AggressiveInlining)
+           || method.HasStackTraceHiddenAttribute()
+           || (method.DeclaringType?.HasStackTraceHiddenAttribute() ?? false);
 
-    public static bool IsNamespaceExcluded(this MethodBase methodBase, string[] namespaces)
+    public static RecursiveStackFrameMetadata[] ProcessStackFrames(this System.Diagnostics.StackTrace stackTrace, NameRControlFlags nameRControlFlags)
     {
-        ReadOnlySpan<char> declaringTypeNamespace = methodBase.DeclaringType?.Namespace;
-        if(declaringTypeNamespace.Length == 0)
+        var resultStackFrames = new Dictionary<object, RecursiveStackFrameMetadata>(stackTrace.FrameCount);
+        for (var stackFrameIndex = 0; stackFrameIndex < stackTrace.FrameCount; stackFrameIndex++)
         {
-            return false;
-        }
-
-        foreach (var @namespace in namespaces)
-        {
-            if (declaringTypeNamespace.StartsWith(@namespace, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static (StackFrame StackFrame, MethodBase? Method, uint CallDepth)[] FlattenRecursionAndFilterUnnecessaryStackFrames(this StackFrame[] stackFrames, NameRControlFlags nameRControlFlags, string[] namespaces)
-    {
-        var recursiveStackFrames = new Dictionary<object, (StackFrame StackFrame, MethodBase? Method, uint CallDepth)>(stackFrames.Length);
-        foreach (var stackFrame in stackFrames)
-        {
-            var stackFrameMethod = stackFrame.GetMethod();
-            
-            if (stackFrameMethod is not null && stackFrameMethod.IsSkippable(nameRControlFlags, namespaces))
+            var stackFrame = stackTrace.GetFrame(stackFrameIndex);
+            if (stackFrame is null)
             {
                 continue;
             }
 
-            // To process stack frames which have no method it is necessary to use another key for the dictionary
-            var key = stackFrameMethod ?? (object)stackFrame;
-            
-            ref var valOrNew = ref CollectionsMarshal.GetValueRefOrAddDefault(recursiveStackFrames, key, out var exists);
+            object key = stackFrame;
+
+            var stackFrameMethod = stackFrame.GetMethod();
+            if (stackFrameMethod is not null)
+            {
+                if (!nameRControlFlags.IsSet(NameRControlFlags.IncludeHiddenStackFrames) && stackFrameMethod.IsHidden())
+                {
+                    continue;
+                }
+
+                if (!nameRControlFlags.IsSet(NameRControlFlags.DontEliminateRecursiveStackFrames))
+                {
+                    key = stackFrameMethod;
+                }
+            }
+
+            ref var valOrNew = ref CollectionsMarshal.GetValueRefOrAddDefault(resultStackFrames, key, out var exists);
             if (!exists)
             {
                 valOrNew.StackFrame = stackFrame;
@@ -70,18 +51,18 @@ internal static class StackTraceHelper
                 valOrNew.CallDepth++;
             }
         }
-        
-        return recursiveStackFrames.Values.ToArray();
+
+        return resultStackFrames.Values.ToArray();
     }
 
-    public static StackFrameMetadata? GetExistingStackFrameMetadata(this StackFrame stackFrame)
+    public static StackFrameMetadata GetStackFrameMetadata(this StackFrame stackFrame)
     {
         var fileName = stackFrame.GetFileName();
-        if (fileName is null || fileName.Length == 0)
+        if (fileName is null)
         {
-            return null;
+            return default;
         }
-        
+
         var lineNumber = stackFrame.GetFileLineNumber();
         var columnNumber = stackFrame.GetFileColumnNumber();
 

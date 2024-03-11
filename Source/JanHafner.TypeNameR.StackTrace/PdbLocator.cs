@@ -7,7 +7,7 @@ namespace JanHafner.TypeNameR.StackTrace;
 public sealed class PdbLocator : IPdbLocator
 {
     private readonly IFileSystem fileSystem;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PdbLocator"/> class.
     /// </summary>
@@ -24,7 +24,7 @@ public sealed class PdbLocator : IPdbLocator
         {
             return null;
         }
-        
+
         return OpenFromProbedLocation(assemblyLocation) ?? OpenFromPortableExecutable(assemblyLocation);
     }
 
@@ -32,17 +32,9 @@ public sealed class PdbLocator : IPdbLocator
     {
         using var assemblyFileStream = fileSystem.FileStream.New(assemblyLocation, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-        using var peReader = new PEReader(assemblyFileStream, 
-#if NET6_0
-            // ...in .net 6 it reduced memory allocations
-            PEStreamOptions.Default
-#elif NET7_0_OR_GREATER
-            // ...but in .net 7/8 memory allocation and speed was reduced
-            PEStreamOptions.PrefetchEntireImage
-#endif
-            );
+        using var peReader = new PEReader(assemblyFileStream);
 
-        var debugDirectory = peReader.ReadDebugDirectory().AsSpan();
+        var debugDirectory = peReader.ReadDebugDirectory();
         foreach (var debugDirectoryEntry in debugDirectory)
         {
             if (debugDirectoryEntry.Type != DebugDirectoryEntryType.CodeView)

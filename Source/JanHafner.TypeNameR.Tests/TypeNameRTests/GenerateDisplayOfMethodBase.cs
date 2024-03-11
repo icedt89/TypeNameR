@@ -35,7 +35,8 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
 
             // Act
             var generated = typeNameR.GenerateDisplay(methodInfo, NameRControlFlags.All
-                                                                  & ~NameRControlFlags.PrependFullTypeName);
+                                                                  & ~NameRControlFlags.PrependFullTypeNameBeforeMethodName
+                                                                  | NameRControlFlags.IncludeDynamic);
 
             // Assert
             generated.Should().Be(expected);
@@ -52,7 +53,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
 
             // Act
             var generated = typeNameR.GenerateDisplay(constructor, NameRControlFlags.All
-                                                                   & ~NameRControlFlags.PrependFullTypeName);
+                                                                   & ~NameRControlFlags.PrependFullTypeNameBeforeMethodName);
 
             // Assert
             generated.Should().Be(expected);
@@ -69,7 +70,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
 
             // Act
             var generated = typeNameR.GenerateDisplay(constructor, NameRControlFlags.All
-                                                                   & ~NameRControlFlags.PrependFullTypeName);
+                                                                   & ~NameRControlFlags.PrependFullTypeNameBeforeMethodName);
 
             // Assert
             generated.Should().Be(expected);
@@ -86,7 +87,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
 
             // Act
             var generated = typeNameR.GenerateDisplay(constructor, NameRControlFlags.All
-                                                                   & ~NameRControlFlags.PrependFullTypeName);
+                                                                   & ~NameRControlFlags.PrependFullTypeNameBeforeMethodName);
 
             // Assert
             generated.Should().Be(expected);
@@ -110,7 +111,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
 
             foreach (var method in methods)
             {
-                yield return new[] { method };
+                yield return [method];
             }
         }
 
@@ -150,6 +151,21 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
 
         [Expects("public void PublicVoid()")]
         public void PublicVoid() => throw new NotImplementedException();
+
+        [Expects("public static dynamic PublicStaticDynamic(dynamic param1)")]
+        public static dynamic PublicStaticDynamic(dynamic param1) => throw new NotImplementedException();
+
+        [Expects("public static ref dynamic PublicStaticRefDynamic(dynamic param1)")]
+        public static ref dynamic PublicStaticRefDynamic(dynamic param1) => throw new NotImplementedException();
+
+        [Expects("public static ref dynamic PublicStaticRefDynamicWithRefDynamicParameter(ref dynamic param1)")]
+        public static ref dynamic PublicStaticRefDynamicWithRefDynamicParameter(ref dynamic param1) => throw new NotImplementedException();
+
+        [Expects("public static ref dynamic PublicStaticRefDynamicWithInDynamicParameter(in dynamic param1)")]
+        public static ref dynamic PublicStaticRefDynamicWithInDynamicParameter(in dynamic param1) => throw new NotImplementedException();
+
+        [Expects("public static ref dynamic PublicStaticRefDynamicWithOutDynamicParameter(out dynamic param1)")]
+        public static ref dynamic PublicStaticRefDynamicWithOutDynamicParameter(out dynamic param1) => throw new NotImplementedException();
 
         [Expects("public static void PublicStaticVoid()")]
         public static void PublicStaticVoid() => throw new NotImplementedException();

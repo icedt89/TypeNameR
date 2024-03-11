@@ -10,6 +10,27 @@ namespace JanHafner.TypeNameR.Tests.StateMachineHelperTests;
 public sealed class ResolveRealMethodFromStateMachine
 {
     [Fact]
+    public void ReturnsAsyncStateMachineIfSetUpOnMethodInfoDirectly()
+    {
+        // Arrange
+        var declaringTypeSubstitute = Substitute.For<Type>();
+
+        // HINT: Using collection initializer feature will fail this test
+        var methodInfoSubstitute = Substitute.For<MethodInfo>();
+        // Necessary setup to fix fail on net 7 and above
+        methodInfoSubstitute.GetCustomAttributes(typeof(StateMachineAttribute), false)
+            .Returns(new[] { new AsyncStateMachineAttribute(declaringTypeSubstitute) });
+
+        // Act
+        MethodInfo? realMethodInfo = null;
+        var stateMachineType = methodInfoSubstitute.ResolveRealMethodFromStateMachine(out realMethodInfo);
+
+        // Assert
+        realMethodInfo.Should().BeSameAs(methodInfoSubstitute);
+        stateMachineType.Should().Be(StateMachineType.Async);
+    }
+
+    [Fact]
     public void ReturnsNoneIfDeclaringTypeIsNull()
     {
         // Arrange
@@ -109,7 +130,7 @@ public sealed class ResolveRealMethodFromStateMachine
                                                           | BindingFlags.Static
                                                           | BindingFlags.Instance
                                                           | BindingFlags.DeclaredOnly)
-            .Returns(new[] { possibleMethodSubstitute });
+            .Returns([possibleMethodSubstitute]);
 
         var declaringTypeSubstitute = Substitute.For<Type>();
         declaringTypeSubstitute.DeclaringType.Returns(declaringTypeOfDeclaringTypeSubstitute);
@@ -137,6 +158,7 @@ public sealed class ResolveRealMethodFromStateMachine
         declaringTypeSubstitute.IsDefined(typeof(CompilerGeneratedAttribute), Arg.Any<bool>())
             .Returns(true);
 
+        // HINT: Using collection initializer feature will fail this test
         var possibleMethodSubstitute = Substitute.For<MethodInfo>();
         possibleMethodSubstitute.GetCustomAttributes(typeof(StateMachineAttribute), false)
             .Returns(new[] { new AsyncStateMachineAttribute(declaringTypeSubstitute) });
@@ -177,6 +199,7 @@ public sealed class ResolveRealMethodFromStateMachine
         // Necessary setup to fix fail on net 7 and above
         possibleMethodSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
         // Necessary setup for test
+        // HINT: Using collection initializer feature will fail this test
         possibleMethodSubstitute.GetCustomAttributes(typeof(StateMachineAttribute), false)
             .Returns(new[] { new IteratorStateMachineAttribute(declaringTypeSubstitute) });
 
@@ -215,6 +238,7 @@ public sealed class ResolveRealMethodFromStateMachine
         // Necessary setup to fix fail on net 7 and above
         possibleMethodSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
         // Necessary setup for test
+        // HINT: Using collection initializer feature will fail this test
         possibleMethodSubstitute.GetCustomAttributes(typeof(StateMachineAttribute), false)
             .Returns(new[] { new AsyncIteratorStateMachineAttribute(declaringTypeSubstitute) });
 
@@ -255,6 +279,7 @@ public sealed class ResolveRealMethodFromStateMachine
         // Necessary setup to fix fail on net 7 and above
         possibleMethodSubstitute.GetCustomAttributes(Arg.Any<Type>(), Arg.Any<bool>()).Returns(Array.Empty<Attribute>());
         // Necessary setup for test
+        // HINT: Using collection initializer feature will fail this test
         possibleMethodSubstitute.GetCustomAttributes(typeof(StateMachineAttribute), false)
             .Returns(new[] { unknownStateMachineAttributeSubstitute });
 

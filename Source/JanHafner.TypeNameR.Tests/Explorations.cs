@@ -3,6 +3,11 @@ using JanHafner.TypeNameR.BenchmarkAndTestUtils;
 using System.Reflection;
 using Xunit;
 using Xunit.Abstractions;
+#if NET6_0
+using NullabilityInfoContext = Nullability.NullabilityInfoContextEx;
+using NullabilityInfo = Nullability.NullabilityInfoEx;
+using NullabilityState = Nullability.NullabilityStateEx;
+#endif
 
 namespace JanHafner.TypeNameR.Tests;
 
@@ -99,16 +104,63 @@ public sealed class Explorations
     }
 
     [Fact]
+    public void NullabilityInfoOfNullableOfInt()
+    {
+        // Arrange
+        var nullabilityInfoContext = new NullabilityInfoContext();
+        var parameter = typeof(ExtensionMethodsClass).GetParameter(nameof(ExtensionMethodsClass.This), 0);
+
+        // Act
+        var nullabilityInfo = nullabilityInfoContext.Create(parameter);
+
+        // Assert
+        nullabilityInfo.Type.Should().BeSameAs(parameter.ParameterType);
+        nullabilityInfo.GenericTypeArguments.Should().BeEmpty();
+        nullabilityInfo.ReadState.Should().Be(NullabilityState.Nullable);
+        nullabilityInfo.WriteState.Should().Be(NullabilityState.Nullable);
+    }
+
+    [Fact]
+    public void EnumerationOfHashSetReturnsElements()
+    {
+        // Arrange
+        IReadOnlySet<string> hashSet = new[] { "System" }.ToHashSet();
+
+        // Act
+        foreach (var item in hashSet)
+        {
+            // Assert
+            item.Should().Be("System");
+        }
+    }
+
+    [Fact]
     public void FrequencyOfPrimitiveTypes()
     {
         // Arrange
         const int take = 100000;
 
-        var primitiveTypesLookup = new HashSet<Type>(new[]
-        {
-            typeof(string), typeof(object), typeof(bool), typeof(double), typeof(decimal), typeof(float), typeof(sbyte), typeof(byte), typeof(void),
-            typeof(ushort), typeof(short), typeof(uint), typeof(int), typeof(ulong), typeof(long), typeof(char), typeof(nint), typeof(nuint),
-        });
+        var primitiveTypesLookup = new HashSet<Type>(
+        [
+            typeof(string),
+            typeof(object),
+            typeof(bool),
+            typeof(double),
+            typeof(decimal),
+            typeof(float),
+            typeof(sbyte),
+            typeof(byte),
+            typeof(void),
+            typeof(ushort),
+            typeof(short),
+            typeof(uint),
+            typeof(int),
+            typeof(ulong),
+            typeof(long),
+            typeof(char),
+            typeof(nint),
+            typeof(nuint),
+        ]);
 
         var types = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).SelectMany(a => a.GetTypes()).ToArray();
 

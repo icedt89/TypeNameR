@@ -6,7 +6,7 @@ namespace JanHafner.TypeNameR.Tests.StaticTypeNameRTests;
 public sealed class Instance
 {
     [Fact]
-    public void ThrowsInvalidOperationExceptionIfTypeNameRWasNotSetUp()
+    public void ThrowsInvalidOperationExceptionIfStaticTypeNameRWasNotSetUp()
     {
         // Act, Assert
         Assert.Throws<InvalidOperationException>(() => StaticTypeNameR.Instance);

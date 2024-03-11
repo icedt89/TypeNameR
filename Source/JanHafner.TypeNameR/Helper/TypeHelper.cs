@@ -1,4 +1,6 @@
-﻿namespace JanHafner.TypeNameR.Helper;
+﻿using System.Runtime.CompilerServices;
+
+namespace JanHafner.TypeNameR.Helper;
 
 internal static class TypeHelper
 {
@@ -12,4 +14,6 @@ internal static class TypeHelper
 
         return typeName;
     }
+
+    public static bool IsGenericValueTuple(this Type type) => type.IsValueType && type.IsGenericType && type.IsAssignableTo(typeof(ITuple));
 }

@@ -4,37 +4,30 @@ using System.Diagnostics.CodeAnalysis;
 namespace JanHafner.TypeNameR.StackTrace;
 
 /// <summary>
-/// Contains source information from a <see cref="StackFrame"/>.
+/// Contains source information for a <see cref="StackFrame"/>.
 /// </summary>
 [DebuggerDisplay("{FileName}:{LineNumber}:{ColumnNumber}")]
 [ExcludeFromCodeCoverage]
-public readonly record struct StackFrameMetadata
+public readonly ref struct StackFrameMetadata(string? fileName, int lineNumber, int columnNumber)
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="StackFrameMetadata"/> type.
+    /// The line number of the code from the source file.
     /// </summary>
-    /// <param name="fileName">The file name (or path) from the original source file.</param>
-    /// <param name="lineNumber">The line number of the code from the original source file.</param>
-    /// <param name="columnNumber">The column number of the code from the original source file.</param>
-    public StackFrameMetadata(string fileName, int lineNumber, int columnNumber)
-    {
-        FileName = fileName;
-        LineNumber = lineNumber;
-        ColumnNumber = columnNumber;
-    }
+    public int LineNumber { get; } = lineNumber;
 
     /// <summary>
-    /// The file name (or path) from the original source file.
+    /// The column number of the code from the source file.
     /// </summary>
-    public string FileName { get; }
+    public int ColumnNumber { get; } = columnNumber;
 
     /// <summary>
-    /// The line number of the code from the original source file.
+    /// Returns <see langword="true"/> if FileName is null.
     /// </summary>
-    public int LineNumber { get; }
+    [MemberNotNullWhen(false, nameof(IsEmpty))]
+    public bool IsEmpty => FileName is null;
 
     /// <summary>
-    /// The column number of the code from the original source file.
+    /// The file name (or path) from the source file.
     /// </summary>
-    public int ColumnNumber { get; }
+    public string? FileName { get; } = fileName;
 }

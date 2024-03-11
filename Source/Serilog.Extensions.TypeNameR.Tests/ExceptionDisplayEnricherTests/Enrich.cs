@@ -33,6 +33,8 @@ public sealed class Enrich
 
         fixture.Inject(NameRControlFlags.All);
 
+        fixture.Inject(ExceptionDisplayEnricher.DefaultExceptionDisplayPropertyName);
+
         logEventPropertyFactorySubstitute = Substitute.For<ILogEventPropertyFactory>();
 
         exceptionDisplayEnricher = fixture.Create<ExceptionDisplayEnricher>();
@@ -53,7 +55,7 @@ public sealed class Enrich
         Call();
 
         // Assert
-        logEvent.Properties.Should().NotContainKey(ExceptionDisplayEnricher.ExceptionDisplayPropertyName);
+        logEvent.Properties.Should().NotContainKey(ExceptionDisplayEnricher.DefaultExceptionDisplayPropertyName);
 
         logEventPropertyFactorySubstitute.ReceivedCalls().Should().BeEmpty();
     }
@@ -76,12 +78,12 @@ public sealed class Enrich
         typeNameRSubstitute.GenerateDisplay(exception, NameRControlFlags.All).Returns(exceptionDisplay);
 
         var logEventProperty = new LogEventProperty(
-            ExceptionDisplayEnricher.ExceptionDisplayPropertyName,
+            ExceptionDisplayEnricher.DefaultExceptionDisplayPropertyName,
             new ScalarValue(exceptionDisplay)
         );
 
         logEventPropertyFactorySubstitute.CreateProperty(
-                ExceptionDisplayEnricher.ExceptionDisplayPropertyName,
+                ExceptionDisplayEnricher.DefaultExceptionDisplayPropertyName,
                 exceptionDisplay,
                 false).Returns(logEventProperty);
 
@@ -90,7 +92,7 @@ public sealed class Enrich
 
         // Assert
         logEvent.Properties.Should()
-            .ContainKey(ExceptionDisplayEnricher.ExceptionDisplayPropertyName)
+            .ContainKey(ExceptionDisplayEnricher.DefaultExceptionDisplayPropertyName)
             .WhoseValue.ToString().Should().Contain(exceptionDisplay);
     }
 

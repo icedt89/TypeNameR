@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using JanHafner.TypeNameR.StackTrace;
 using System.Diagnostics;
 using Xunit;
 
@@ -7,7 +8,7 @@ namespace JanHafner.TypeNameR.Tests.ExceptionStackTraceManipulatorTests;
 public sealed class GetOriginalStackTraceOrNull
 {
     private Exception exception = new();
-    
+
     [Fact]
     public void ThrowsArgumentNullExceptionIfExceptionIsNull()
     {
@@ -15,7 +16,7 @@ public sealed class GetOriginalStackTraceOrNull
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
         exception = null;
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-        
+
         // Act, Assert
         var argumentNullException = Assert.Throws<ArgumentNullException>(() => Call());
         argumentNullException.ParamName.Should().Be(nameof(exception));

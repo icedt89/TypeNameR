@@ -196,7 +196,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
 
             foreach (var parameter in parameters)
             {
-                yield return new[] { parameter };
+                yield return [parameter];
             }
         }
 
@@ -279,7 +279,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
             public static void ArrayWithNullableItem([Expects("string?[] param1")] string?[] param1) => throw new NotImplementedException();
 
             public static void NullableArrayWithNullableItem([Expects("string?[]? param1")] string?[]? param1) => throw new NotImplementedException();
-            
+
             public static void RefArray([Expects("ref string[] param1")] ref string[] param1) => throw new NotImplementedException();
 
             public static void RefNullableArray([Expects("ref string[]? param1")] ref string[]? param1) => throw new NotImplementedException();
@@ -725,6 +725,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
             // Does not compile
             // public static void RefPointerOfArrayWithNullableItem(ref TestStruct?[]* param1) => throw new NotImplementedException();
         }
+
 #pragma warning restore CS8500
     }
 }

@@ -44,6 +44,7 @@ public sealed class GenerateDisplayOfType
     [InlineData(typeof(TestClass.InnerTestClass), "JanHafner.TypeNameR.BenchmarkAndTestUtils.TestClass+InnerTestClass")]
     [InlineData(typeof(TestClass.InnerTestClass.MostInnerTestClass), "JanHafner.TypeNameR.BenchmarkAndTestUtils.TestClass+InnerTestClass+MostInnerTestClass")]
     [InlineData(typeof(GenericTestClass<>), "GenericTestClass<T>")]
+    [InlineData(typeof(GenericTestClass<string>), "GenericTestClass<string>")]
     [InlineData(typeof(GenericTestClass<TestClass>), "GenericTestClass<TestClass>")]
     [InlineData(typeof(GenericTestClass<>.InnerNonGenericTestClass),
         "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<T>+InnerNonGenericTestClass")]
@@ -104,6 +105,8 @@ public sealed class GenerateDisplayOfType
         "JanHafner.TypeNameR.BenchmarkAndTestUtils.NonGenericTestStruct+InnerGenericTestStruct<IReadOnlyList<double?>, int>")]
     [InlineData(typeof(NonGenericTestStruct.InnerGenericTestStruct<IReadOnlyList<double?>, int>.MostInnerNonGenericTestStruct),
         "JanHafner.TypeNameR.BenchmarkAndTestUtils.NonGenericTestStruct+InnerGenericTestStruct<IReadOnlyList<double?>, int>+MostInnerNonGenericTestStruct")]
+    [InlineData(typeof(GenericTestStruct<int>.InnerGenericTestStruct<bool[]>.MoreInnerGenericTestStruct<string, char>.MoreMoreInnerGenericTestStruct.MostInnerGenericTestStruct<uint>),
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestStruct<int>+InnerGenericTestStruct<bool[]>+MoreInnerGenericTestStruct<string, char>+MoreMoreInnerGenericTestStruct+MostInnerGenericTestStruct<uint>")]
     [InlineData(typeof(string[]), "string[]")]
     [InlineData(typeof(string[][]), "string[][]")]
     [InlineData(typeof(string[,]), "string[,]")]
@@ -117,14 +120,14 @@ public sealed class GenerateDisplayOfType
         var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
         // Act
-        var generated = typeNameR.GenerateDisplay(type, false, null);
+        var generated = typeNameR.GenerateDisplay(type, false, NameRControlFlags.All);
 
         // Assert
         generated.Should().Be(expectedReadableName);
     }
 
     [Theory]
-    [InlineData(typeof(GenerateDisplayOfType[]), "ArrayOfExtractReadableTypeName")]
+    [InlineData(typeof(GenerateDisplayOfType[]), "ArrayOfGenerateDisplayOfType")]
     [InlineData(typeof(int?), "NullableOfInt")]
     public void GenerateTypeDisplayUsingPredefinedTypeName(Type type, string expectedReadableName)
     {
@@ -132,7 +135,7 @@ public sealed class GenerateDisplayOfType
         var typeNameR = new TypeNameR(typeNameROptions: new TypeNameROptions(new Dictionary<Type, string> { { type, expectedReadableName } }));
 
         // Act
-        var generated = typeNameR.GenerateDisplay(type, false, null);
+        var generated = typeNameR.GenerateDisplay(type, false, NameRControlFlags.All);
 
         // Assert
         generated.Should().Be(expectedReadableName);
@@ -140,11 +143,22 @@ public sealed class GenerateDisplayOfType
 
     public static IEnumerable<object[]> GetDoesNotThrowAnExceptionTests(int take)
     {
-        var types = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).SelectMany(a => a.GetExportedTypes()).Take(take);
+        var types = new HashSet<Type>(take);
+        var allTypes = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).SelectMany(a => a.GetExportedTypes()).ToList();
+
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        while (types.Count < take && !cts.IsCancellationRequested)
+        {
+            var index = Random.Shared.Next(0, allTypes.Count);
+            var type = allTypes[index];
+
+            types.Add(type);
+        }
 
         foreach (var type in types)
         {
-            yield return new[] { type };
+            yield return [type];
         }
     }
 
@@ -156,7 +170,7 @@ public sealed class GenerateDisplayOfType
         var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
 
         // Act, Assert
-        var generated = typeNameR.GenerateDisplay(type, false, null);
+        var generated = typeNameR.GenerateDisplay(type, false, NameRControlFlags.All);
 
         generated.Should().NotBeNullOrWhiteSpace();
     }

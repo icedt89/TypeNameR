@@ -10,23 +10,27 @@ namespace Serilog.Extensions.TypeNameR;
 public sealed class ExceptionDisplayEnricher : ILogEventEnricher
 {
     /// <summary>
-    /// The name
+    /// The default name of the log property.
     /// </summary>
-    public const string ExceptionDisplayPropertyName = "ExceptionDisplay";
+    public const string DefaultExceptionDisplayPropertyName = "ExceptionDisplay";
 
     private readonly ITypeNameR typeNameR;
 
     private readonly NameRControlFlags nameRControlFlags;
+
+    private readonly string exceptionDisplayPropertyName;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExceptionDisplayEnricher"/> class.
     /// </summary>
     /// <param name="typeNameR">The <see cref="ITypeNameR"/> to use.</param>
     /// <param name="nameRControlFlags">The <see cref="NameRControlFlags"/> to use.</param>
-    public ExceptionDisplayEnricher(ITypeNameR typeNameR, NameRControlFlags nameRControlFlags)
+    /// <param name="exceptionDisplayPropertyName">The name of the log property.</param>
+    public ExceptionDisplayEnricher(ITypeNameR typeNameR, NameRControlFlags nameRControlFlags, string exceptionDisplayPropertyName = DefaultExceptionDisplayPropertyName)
     {
         this.typeNameR = typeNameR;
         this.nameRControlFlags = nameRControlFlags;
+        this.exceptionDisplayPropertyName = exceptionDisplayPropertyName;
     }
 
     /// <inheritdoc />
@@ -39,7 +43,7 @@ public sealed class ExceptionDisplayEnricher : ILogEventEnricher
 
         var exceptionDisplay = typeNameR.GenerateDisplay(logEvent.Exception, nameRControlFlags);
 
-        var logEventProperty = propertyFactory.CreateProperty(ExceptionDisplayPropertyName, exceptionDisplay);
+        var logEventProperty = propertyFactory.CreateProperty(exceptionDisplayPropertyName, exceptionDisplay);
 
         logEvent.AddPropertyIfAbsent(logEventProperty);
     }

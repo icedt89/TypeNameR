@@ -9,7 +9,7 @@ namespace JanHafner.TypeNameR.StackTrace;
 public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
 {
     private readonly IPdbLocator pdbLocator;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PdbLocator"/> class.
     /// </summary>
@@ -20,42 +20,33 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
     }
 
     /// <inheritdoc />
-    public StackFrameMetadata? ProvideStackFrameMetadata(StackFrame stackFrame, MethodBase method)
+    public StackFrameMetadata ProvideStackFrameMetadata(StackFrame stackFrame, MethodBase method)
     {
         var ilOffset = stackFrame.GetILOffset();
         if (ilOffset == StackFrame.OFFSET_UNKNOWN)
         {
-            return null;
+            return default;
         }
 
         var methodBaseMetadataTokenHandle = MetadataTokens.Handle(method.GetMetadataToken());
         if (methodBaseMetadataTokenHandle.Kind != HandleKind.MethodDefinition || methodBaseMetadataTokenHandle.IsNil)
         {
-            return null;
+            return default;
         }
 
         var debugInformationHandle = ((MethodDefinitionHandle)methodBaseMetadataTokenHandle).ToDebugInformationHandle();
         if (debugInformationHandle.IsNil)
         {
-            return null;
+            return default;
         }
-        
+
         var pdbStream = pdbLocator.OpenLocatedPdb(method.Module.Assembly.Location);
         if (pdbStream is null)
         {
-            return null;
+            return default;
         }
 
-        // According to benchmarks...
-        using var metadataReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream,
-#if NET6_0
-            // ...in .net 6 it reduced memory allocations
-            MetadataStreamOptions.Default
-#elif NET7_0_OR_GREATER
-            // ...but in .net 7/8 memory allocation and speed was reduced
-            MetadataStreamOptions.PrefetchMetadata
-#endif
-            );
+        using var metadataReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream);
 
         var metadataReader = metadataReaderProvider.GetMetadataReader();
 
@@ -65,19 +56,19 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
         var bestSequencePoint = FindBestSequencePoint(ilOffset, sequencePoints);
         if (!bestSequencePoint.HasValue)
         {
-            return null;
+            return default;
         }
 
         return CreateStackFrameMetadata(metadataReader, bestSequencePoint.Value);
     }
 
-    private static StackFrameMetadata? CreateStackFrameMetadata(MetadataReader metadataReader, SequencePoint sequencePoint)
+    private static StackFrameMetadata CreateStackFrameMetadata(MetadataReader metadataReader, SequencePoint sequencePoint)
     {
         var document = metadataReader.GetDocument(sequencePoint.Document);
         var fileName = metadataReader.GetString(document.Name);
         if (fileName.Length == 0)
         {
-            return null;
+            return default;
         }
 
         var lineNumber = sequencePoint.StartLine;

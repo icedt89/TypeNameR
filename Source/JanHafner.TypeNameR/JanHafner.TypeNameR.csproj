@@ -8,23 +8,20 @@
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	<SignAssembly>False</SignAssembly>
     <LangVersion>latest</LangVersion>
-    <Version>2.2.4.5</Version>
-    <ProductVersion>2.0.0.0</ProductVersion>
+    <Version>2.5.0.0</Version>
+    <ProductVersion>2.5.0.0</ProductVersion>
   </PropertyGroup>
     
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <Optimize>False</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <Optimize>True</Optimize>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Nullability" Version="2.2.0" Condition="'$(TargetFramework)' == 'net6.0'" />
+      <PackageReference Include="ErrorProne.NET.CoreAnalyzers">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="ErrorProne.NET.Structs">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      </PackageReference>
+    <PackageReference Include="Nullability" Condition="'$(TargetFramework)' == 'net6.0'" />
   </ItemGroup>
-
-
-
-
+    
 </Project>

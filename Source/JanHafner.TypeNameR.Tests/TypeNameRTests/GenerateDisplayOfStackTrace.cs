@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using JanHafner.TypeNameR.BenchmarkAndTestUtils;
-using System.Diagnostics;
 using Xunit;
 
 namespace JanHafner.TypeNameR.Tests.TypeNameRTests
@@ -18,6 +17,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
             }
             catch (StackOverflowException stackOverflowException)
             {
+                var huf = stackOverflowException.ToString();
                 stackTrace = new System.Diagnostics.StackTrace(stackOverflowException, true);
             }
 
@@ -27,34 +27,10 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
             var generated = typeNameR.GenerateDisplay(stackTrace, NameRControlFlags.All);
 
             // Assert
-            throw new NotImplementedException();
-        }
-
-        [Fact]
-        public void GenerateTheSameStackTraceAsDemystifier()
-        {
-            // Arrange
-            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
-
-            try
-            {
-                StackTraceGenerator.CallRecursiveGenericMethodWithAsyncStateMachineAttributeAsync<int>();
-            }
-            catch (StackOverflowException stackOverflowException)
-            {
-                var demystified = stackOverflowException.ToStringDemystified();
-
-                // Act
-                var generated = typeNameR.GenerateDisplay(stackOverflowException, NameRControlFlags.All
-                                                                                  & ~NameRControlFlags.IncludeAccessModifier
-                                                                                  & ~NameRControlFlags.IncludeParameterDefaultValue
-                                                                                  & ~NameRControlFlags.IncludeStaticModifier
-                                                                                  & ~NameRControlFlags.IncludeAsyncModifier
-                                                                                  & ~NameRControlFlags.IncludeNullabilityInfo);
-
-                // Assert
-                generated.Should().Be(demystified);
-            }
+            generated.Should().Be(
+                @"  at public static Task<TResult?> JanHafner.TypeNameR.BenchmarkAndTestUtils.StackTraceGenerator.CallRecursiveGenericMethodAsync<TResult>(int? recursionDepth = 1, int stopAt = 10) x 9 in X:\icedt89\TypeNameR\Source\JanHafner.TypeNameR.BenchmarkAndTestUtils\StackTraceGenerator.cs:line 30:13
+  at public static async Task<TResult?> JanHafner.TypeNameR.BenchmarkAndTestUtils.StackTraceGenerator.CallRecursiveGenericMethodWithAsyncStateMachineAttributeAsync<TResult>(int? recursionDepth = 1, int stopAt = 10) in X:\icedt89\TypeNameR\Source\JanHafner.TypeNameR.BenchmarkAndTestUtils\StackTraceGenerator.cs:line 45:9
+  at public void JanHafner.TypeNameR.Tests.TypeNameRTests.GenerateDisplayOfStackTrace.GenerateStackTraceDisplay() in X:\icedt89\TypeNameR\Source\JanHafner.TypeNameR.Tests\TypeNameRTests\GenerateDisplayOfStackTrace.cs:line 16:17");
         }
     }
 }

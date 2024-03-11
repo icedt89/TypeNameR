@@ -6,19 +6,24 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ben.Demystifier" Version="0.4.1" />
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.7" />
-    <PackageReference Include="System.IO.Abstractions" Version="19.2.64" />
-    <PackageReference Include="AutoFixture.AutoNSubstitute" Version="4.18.0" />
+    <PackageReference Include="Ben.Demystifier" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="System.IO.Abstractions" />
+    <PackageReference Include="AutoFixture.AutoNSubstitute" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\JanHafner.TypeNameR.BenchmarkAndTestUtils\JanHafner.TypeNameR.BenchmarkAndTestUtils.csproj" />
     <ProjectReference Include="..\JanHafner.TypeNameR.StackTrace\JanHafner.TypeNameR.StackTrace.csproj" />
     <ProjectReference Include="..\JanHafner.TypeNameR\JanHafner.TypeNameR.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Experimental\ExperimentalTypeNameR\" />
   </ItemGroup>
 
 </Project>

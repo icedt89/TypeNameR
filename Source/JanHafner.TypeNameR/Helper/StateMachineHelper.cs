@@ -15,7 +15,7 @@ internal static class StateMachineHelper
 
             return stateMachineType;
         }
-        
+
         // It is assumed that any state machine is nested inside a type of the type which uses it
         var generatedType = methodInfo.DeclaringType;
         if (generatedType is null)
@@ -40,7 +40,7 @@ internal static class StateMachineHelper
         }
 
         // ...and has a compiler generated annotation
-        if (!generatedType.IsDefined(typeof(CompilerGeneratedAttribute), false))
+        if (!generatedType.HasCompilerGeneratedAttribute())
         {
             realMethodInfo = null;
 
@@ -67,22 +67,22 @@ internal static class StateMachineHelper
         }
 
         realMethodInfo = null;
-        
+
         return StateMachineType.None;
     }
 
     private static StateMachineType GetStateMachineType(this MethodInfo methodInfo, out Type? stateMachineImplementationType)
     {
-        var stateMachineAttribute = methodInfo.GetCustomAttribute<StateMachineAttribute>(false);
+        var stateMachineAttribute = methodInfo.FindStateMachineAttribute();
         if (stateMachineAttribute?.StateMachineType is null)
         {
             stateMachineImplementationType = null;
-            
+
             return StateMachineType.None;
         }
-        
+
         stateMachineImplementationType = stateMachineAttribute.StateMachineType;
-        
+
         return stateMachineAttribute switch
         {
             AsyncStateMachineAttribute => StateMachineType.Async,

@@ -18,7 +18,7 @@ public sealed class ExpectsAttribute : Attribute
 
         return expectsAttribute?.Expected;
     }
-    
+
     public static string? GetExpectation(ParameterInfo customAttributeProvider)
     {
         var expectsAttribute = customAttributeProvider.GetCustomAttribute<ExpectsAttribute>();

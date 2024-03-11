@@ -5,27 +5,27 @@ internal static class Constants
     public const string ParamsWithEndingSpace = "params ";
 
     public const string PublicWithEndingSpace = "public ";
-    
+
     public const string PrivateWithEndingSpace = "private ";
 
     public const string AsyncWithEndingSpace = "async ";
-    
+
     public const string StaticWithEndingSpace = "static ";
-    
+
     public const string InWithEndingSpace = "in ";
-    
+
     public const string OutWithEndingSpace = "out ";
-    
+
     public const string RefWithEndingSpace = "ref ";
-    
+
     public const string ThisWithEndingSpace = "this ";
-    
+
     public const string DefaultWithLeadingSpace = " default";
-    
+
     public const string NullWithLeadingSpace = " null";
-    
+
     public const string ColonWithEndingSpace = ": ";
-    
+
     public const char LeftParenthesis = '(';
 
     public const char RightParenthesis = ')';
@@ -47,7 +47,7 @@ internal static class Constants
     public const char RightSquareBracket = ']';
 
     public const char QuotationMark = '\"';
-    
+
     public const char Space = ' ';
 
     public const char EqualsSign = '=';
@@ -63,26 +63,30 @@ internal static class Constants
     public const string Constructor = ".ctor";
 
     public const string StaticConstructor = ".cctor";
-    
+
     public const string AtWithEndingSpace = "at ";
 
     public const string MoveNextCallSuffix = "+MoveNext()";
 
-    public const string Indent = "   ";
+    public const string Indent = "  ";
 
     public const string InSourceWithLeadingAndEndingSpace = " in ";
 
     public const string LineWithEndingSpace = ":line ";
-    
+
     public const char Colon = ':';
 
     public const string RecursionMarkWithLeadingAndEndingSpace = " x ";
-    
+
     public const string UnknownStackFrameName = "<unknown>";
-    
+
     public const uint DefaultCallDepth = 1;
 
     public const sbyte ReturnParameterIndex = -1;
 
     public const byte ThisKeywordOnlyValidOnIndex = 0;
+
+    public const string ExceptionStackTraceBackingFieldName = "_stackTraceString";
+
+    public const string Dynamic = "dynamic";
 }

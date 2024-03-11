@@ -10,23 +10,23 @@ namespace JanHafner.TypeNameR.Exceptions;
 [ExcludeFromCodeCoverage]
 public class StackTraceNotRewritableException : TypeNameRException
 {
-    public StackTraceNotRewritableException() 
-    { 
-    }
-    
-    public StackTraceNotRewritableException(string message)
-        : base(message) 
+    public StackTraceNotRewritableException()
     {
     }
-    
-    public StackTraceNotRewritableException(string message, Exception inner)
-        : base(message, inner) 
-    { 
+
+    public StackTraceNotRewritableException(string message)
+        : base(message)
+    {
     }
-    
+
+    public StackTraceNotRewritableException(string message, Exception inner)
+        : base(message, inner)
+    {
+    }
+
     protected StackTraceNotRewritableException(SerializationInfo info,
                                                StreamingContext context)
-        : base(info, context) 
+        : base(info, context)
     {
     }
 }

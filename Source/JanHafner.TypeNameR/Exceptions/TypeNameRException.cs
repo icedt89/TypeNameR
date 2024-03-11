@@ -8,25 +8,25 @@ namespace JanHafner.TypeNameR.Exceptions;
 /// </summary>
 [Serializable]
 [ExcludeFromCodeCoverage]
-public class TypeNameRException : ApplicationException
+public class TypeNameRException : Exception
 {
-    public TypeNameRException() 
-    { 
-    }
-    
-    public TypeNameRException(string message)
-        : base(message) 
+    public TypeNameRException()
     {
     }
-    
-    public TypeNameRException(string message, Exception inner)
-        : base(message, inner) 
-    { 
+
+    public TypeNameRException(string message)
+        : base(message)
+    {
     }
-    
+
+    public TypeNameRException(string message, Exception inner)
+        : base(message, inner)
+    {
+    }
+
     protected TypeNameRException(SerializationInfo info,
         StreamingContext context)
-        : base(info, context) 
+        : base(info, context)
     {
     }
 }
