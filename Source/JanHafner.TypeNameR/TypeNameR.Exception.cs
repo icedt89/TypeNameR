@@ -71,7 +71,7 @@ public partial class TypeNameR
         {
             ProcessMethod(stringBuilder, nullabilityInfoContext, methodBase, nameRControlFlags, out var stateMachineType);
 
-            if (stateMachineType.IsSet(StateMachineType.Iterator))
+            if (stateMachineType.HasFlag(StateMachineType.Iterator))
             {
                 stringBuilder.AppendMoveNextCallSuffix();
             }
@@ -82,13 +82,13 @@ public partial class TypeNameR
             }
         }
 
-        if (!nameRControlFlags.IsSet(NameRControlFlags.IncludeSourceInformation))
+        if (!nameRControlFlags.HasFlag(NameRControlFlags.IncludeSourceInformation))
         {
             return;
         }
 
         var stackFrameMetadata = stackFrame.GetStackFrameMetadata();
-        if (stackFrameMetadata.IsEmpty && methodBase is not null && nameRControlFlags.IsSet(NameRControlFlags.FallbackToStackFrameMetadataProvider) && stackFrameMetadataProvider is not null)
+        if (stackFrameMetadata.IsEmpty && methodBase is not null && nameRControlFlags.HasFlag(NameRControlFlags.FallbackToStackFrameMetadataProvider) && stackFrameMetadataProvider is not null)
         {
             stackFrameMetadata = stackFrameMetadataProvider.ProvideStackFrameMetadata(stackFrame, methodBase);
         }
@@ -106,7 +106,7 @@ public partial class TypeNameR
     {
         ArgumentNullException.ThrowIfNull(exception);
 
-        var stackTrace = new System.Diagnostics.StackTrace(exception, nameRControlFlags.IsSet(NameRControlFlags.IncludeSourceInformation));
+        var stackTrace = new System.Diagnostics.StackTrace(exception, nameRControlFlags.HasFlag(NameRControlFlags.IncludeSourceInformation));
 
         var stringBuilder = new StringBuilder();
 
@@ -145,14 +145,14 @@ public partial class TypeNameR
         {
             var stringBuilder = new StringBuilder();
 
-            var originalStackTrace = new System.Diagnostics.StackTrace(exception, nameRControlFlags.IsSet(NameRControlFlags.IncludeSourceInformation));
+            var originalStackTrace = new System.Diagnostics.StackTrace(exception, nameRControlFlags.HasFlag(NameRControlFlags.IncludeSourceInformation));
 
             ProcessStackTrace(stringBuilder, nullabilityInfoContext, originalStackTrace, nameRControlFlags);
 
-            exception.SetStackTrace(stringBuilder, nameRControlFlags.IsSet(NameRControlFlags.StoreOriginalStackTraceInExceptionData));
+            exception.SetStackTrace(stringBuilder, nameRControlFlags.HasFlag(NameRControlFlags.StoreOriginalStackTraceInExceptionData));
         }
 
-        if (!nameRControlFlags.IsSet(NameRControlFlags.IncludeInnerExceptions))
+        if (!nameRControlFlags.HasFlag(NameRControlFlags.IncludeInnerExceptions))
         {
             return;
         }

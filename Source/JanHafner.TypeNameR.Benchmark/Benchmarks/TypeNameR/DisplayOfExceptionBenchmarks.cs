@@ -23,7 +23,7 @@ public class DisplayOfExceptionBenchmarks
     {
         try
         {
-            await StackTraceGenerator.CallRecursiveGenericMethodAsync<int>();
+            await StackTraceGenerator.CallRecursiveGenericMethodAsync<int>(stopAt: 100);
         }
         catch (Exception exception)
         {
@@ -39,11 +39,15 @@ public class DisplayOfExceptionBenchmarks
     // [Benchmark]
     public string Demystify() => catchedException.Demystify().ToString();
 
+    // Before using foreach:
+    // | Method          | Job      | Runtime  | Mean       | Error    | StdDev    | Median     | Rank | Gen0    | Gen1    | Allocated |
+    // |---------------- |--------- |--------- |-----------:|---------:|----------:|-----------:|-----:|--------:|--------:|----------:|
+    // | GenerateDisplay | .NET 6.0 | .NET 6.0 | 1,788.1 us | 60.24 us | 176.68 us | 1,693.2 us |    3 | 82.0313 | 17.5781 | 508.95 KB |
+    // | GenerateDisplay | .NET 7.0 | .NET 7.0 |   957.7 us | 22.51 us |  66.37 us |   929.9 us |    2 | 94.7266 | 23.4375 | 583.68 KB |
+    // | GenerateDisplay | .NET 8.0 | .NET 8.0 |   865.3 us | 16.60 us |  16.30 us |   871.5 us |    1 | 89.8438 | 19.5313 | 566.38 KB |
+
     [Benchmark]
     public string GenerateDisplay()
         => typeNameR.GenerateDisplay(catchedException, NameRControlFlags.All
-                                                                            & ~NameRControlFlags.IncludeHiddenStackFrames
-                                                                            & ~NameRControlFlags.IncludeAccessModifier
-                                                                            & ~NameRControlFlags.IncludeStaticModifier
-                                                                            & ~NameRControlFlags.IncludeParameterDefaultValue);
+                                                       | NameRControlFlags.DontEliminateRecursiveStackFrames);
 }

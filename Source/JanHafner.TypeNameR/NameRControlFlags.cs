@@ -106,7 +106,7 @@ public enum NameRControlFlags : uint
     DontEliminateRecursiveStackFrames = 1 << 17,
 
     /// <summary>
-    /// Shortcut for all flags (excluding <see cref="IncludeDynamic"/>, <see cref="StoreOriginalStackTraceInExceptionData"/> and <see cref="FallbackToStackFrameMetadataProvider"/>).
+    /// Shortcut for all flags (excluding <see cref="IncludeDynamic"/>, <see cref="StoreOriginalStackTraceInExceptionData"/>, <see cref="DontEliminateRecursiveStackFrames"/> and <see cref="FallbackToStackFrameMetadataProvider"/>).
     /// </summary>
     All = IncludeAccessModifier
         | IncludeStaticModifier

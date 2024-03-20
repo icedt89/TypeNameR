@@ -101,7 +101,7 @@ public sealed partial class TypeNameR : ITypeNameR
         {
             var startGenericParameterIndex = 0;
             var genericParametersCount = 0;
-            var processGenerics = nameRControlFlags.IsSet(NameRControlFlags.IncludeGenericParameters) && DetermineGenericsProcessingInfo(type, ref masterGenericTypes, out startGenericParameterIndex, out genericParametersCount);
+            var processGenerics = nameRControlFlags.HasFlag(NameRControlFlags.IncludeGenericParameters) && type.DetermineActualGenerics(ref masterGenericTypes, out startGenericParameterIndex, out genericParametersCount);
 
             // Nested
             if (type.DeclaringType is not null && !type.IsGenericParameter)

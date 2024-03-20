@@ -55,6 +55,8 @@ public sealed class GenerateDisplayOfType
         "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<double?>+InnerNonGenericTestClass")]
     [InlineData(typeof(GenericTestClass<double?>.InnerNonGenericTestClass.MostInnerGenericTestClass<double?, string>),
         "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<double?>+InnerNonGenericTestClass+MostInnerGenericTestClass<double?, string>")]
+    [InlineData(typeof(GenericTestClass<double?>.InnerNonGenericTestClass.MostInnerGenericTestClass<double?, string>.InnerNonGenericTestClass.MostInnerGenericTestClass<char>),
+        "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<double?>+InnerNonGenericTestClass+MostInnerGenericTestClass<double?, string>+InnerNonGenericTestClass+MostInnerGenericTestClass<char>")]
     [InlineData(typeof(GenericTestClass<string[]>), "GenericTestClass<string[]>")]
     [InlineData(typeof(GenericTestClass<string[]>.InnerNonGenericTestClass),
         "JanHafner.TypeNameR.BenchmarkAndTestUtils.GenericTestClass<string[]>+InnerNonGenericTestClass")]

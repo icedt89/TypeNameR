@@ -1,6 +1,5 @@
 ﻿using JanHafner.TypeNameR.Helper;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 
 #if NET6_0
@@ -42,12 +41,12 @@ public partial class TypeNameR
 
     private void ProcessParameter(StringBuilder stringBuilder, NullabilityInfoContext nullabilityInfoContext, ParameterInfo parameterInfo, NameRControlFlags nameRControlFlags)
     {
-        if (nameRControlFlags.IsSet(NameRControlFlags.IncludeParameterPrefix))
+        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeParameterPrefix))
         {
             ProcessParameterPrefix(stringBuilder, parameterInfo, nameRControlFlags);
         }
 
-        if (nameRControlFlags.IsSet(NameRControlFlags.IncludeDynamic) && parameterInfo.HasDynamicAttribute())
+        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeDynamic) && parameterInfo.HasDynamicAttribute())
         {
             stringBuilder.AppendDynamic();
         }
@@ -56,7 +55,7 @@ public partial class TypeNameR
             ProcessTypeCore(stringBuilder,
                 parameterInfo.ParameterType,
                 fullTypeName: false,
-                nameRControlFlags.IsSet(NameRControlFlags.IncludeNullabilityInfo) ? nullabilityInfoContext.Create(parameterInfo) : null,
+                nameRControlFlags.HasFlag(NameRControlFlags.IncludeNullabilityInfo) ? nullabilityInfoContext.Create(parameterInfo) : null,
                 masterGenericTypes: null,
                 nameRControlFlags);
         }
@@ -68,7 +67,7 @@ public partial class TypeNameR
 
         stringBuilder.AppendParameterName(parameterInfo.Name!);
 
-        if (nameRControlFlags.IsSet(NameRControlFlags.IncludeParameterDefaultValue))
+        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeParameterDefaultValue))
         {
             ProcessParameterSuffix(stringBuilder, parameterInfo);
         }
@@ -79,7 +78,7 @@ public partial class TypeNameR
         // They are all mutually exclusive!
         // The "this" keyword is only valid on the first parameter
         if (parameterInfo.Position == Constants.ThisKeywordOnlyValidOnIndex
-            && nameRControlFlags.IsSet(NameRControlFlags.IncludeThisKeyword)
+            && nameRControlFlags.HasFlag(NameRControlFlags.IncludeThisKeyword)
             && parameterInfo.Member.HasExtensionAttribute())
         {
             stringBuilder.AppendThisWithEndingSpace();
@@ -120,7 +119,7 @@ public partial class TypeNameR
 
         // The "params" keyword is only valid on non return parameter
         if (parameterInfo.Position > Constants.ReturnParameterIndex
-            && nameRControlFlags.IsSet(NameRControlFlags.IncludeParamsKeyword)
+            && nameRControlFlags.HasFlag(NameRControlFlags.IncludeParamsKeyword)
             && parameterInfo.HasParamArrayAttribute())
         {
             stringBuilder.AppendParamsWithEndingSpace();

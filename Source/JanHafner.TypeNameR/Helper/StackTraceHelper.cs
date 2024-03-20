@@ -8,7 +8,7 @@ namespace JanHafner.TypeNameR.Helper;
 internal static class StackTraceHelper
 {
     public static bool IsHidden(this MethodBase method)
-        => method.MethodImplementationFlags.IsSet(MethodImplAttributes.AggressiveInlining)
+        => method.MethodImplementationFlags.HasFlag(MethodImplAttributes.AggressiveInlining)
            || method.HasStackTraceHiddenAttribute()
            || (method.DeclaringType?.HasStackTraceHiddenAttribute() ?? false);
 
@@ -28,12 +28,12 @@ internal static class StackTraceHelper
             var stackFrameMethod = stackFrame.GetMethod();
             if (stackFrameMethod is not null)
             {
-                if (!nameRControlFlags.IsSet(NameRControlFlags.IncludeHiddenStackFrames) && stackFrameMethod.IsHidden())
+                if (!nameRControlFlags.HasFlag(NameRControlFlags.IncludeHiddenStackFrames) && stackFrameMethod.IsHidden())
                 {
                     continue;
                 }
 
-                if (!nameRControlFlags.IsSet(NameRControlFlags.DontEliminateRecursiveStackFrames))
+                if (!nameRControlFlags.HasFlag(NameRControlFlags.DontEliminateRecursiveStackFrames))
                 {
                     key = stackFrameMethod;
                 }

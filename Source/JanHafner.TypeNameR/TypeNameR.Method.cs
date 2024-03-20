@@ -61,19 +61,19 @@ public partial class TypeNameR
     {
         ProcessMethodModifier(stringBuilder, method, nameRControlFlags);
 
-        if (nameRControlFlags.IsSet(NameRControlFlags.IncludeAsyncModifier) && stateMachineType.IsSet(StateMachineType.Async))
+        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeAsyncModifier) && stateMachineType.HasFlag(StateMachineType.Async))
         {
             stringBuilder.AppendAsyncWithEndingSpace();
         }
 
-        if (nameRControlFlags.IsSet(NameRControlFlags.IncludeReturnParameter))
+        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeReturnParameter))
         {
             ProcessParameter(stringBuilder, nullabilityInfoContext, method.ReturnParameter, nameRControlFlags);
 
             stringBuilder.AppendSpace();
         }
 
-        if (nameRControlFlags.IsSet(NameRControlFlags.PrependFullTypeNameBeforeMethodName) && method.DeclaringType is not null)
+        if (nameRControlFlags.HasFlag(NameRControlFlags.PrependFullTypeNameBeforeMethodName) && method.DeclaringType is not null)
         {
             ProcessTypeCore(stringBuilder, method.DeclaringType, true, null, null, nameRControlFlags);
 
@@ -82,7 +82,7 @@ public partial class TypeNameR
 
         stringBuilder.Append(method.Name);
 
-        if (nameRControlFlags.IsSet(NameRControlFlags.IncludeGenericParameters) && method.IsGenericMethod)
+        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeGenericParameters) && method.IsGenericMethod)
         {
             stringBuilder.AppendLessThanSign();
 
@@ -98,7 +98,7 @@ public partial class TypeNameR
     {
         ProcessMethodModifier(stringBuilder, constructor, nameRControlFlags);
 
-        if (nameRControlFlags.IsSet(NameRControlFlags.PrependFullTypeNameBeforeMethodName) && constructor.DeclaringType is not null)
+        if (nameRControlFlags.HasFlag(NameRControlFlags.PrependFullTypeNameBeforeMethodName) && constructor.DeclaringType is not null)
         {
             ProcessTypeCore(stringBuilder, constructor.DeclaringType, true, null, null, nameRControlFlags);
 
@@ -117,7 +117,7 @@ public partial class TypeNameR
 
     private static void ProcessMethodModifier(StringBuilder stringBuilder, MethodBase methodBase, NameRControlFlags nameRControlFlags)
     {
-        if (nameRControlFlags.IsSet(NameRControlFlags.IncludeAccessModifier))
+        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeAccessModifier))
         {
             // Mutually exclusive, a method cant be "private" and "public" and the same time
             if (methodBase.IsPrivate)
@@ -130,7 +130,7 @@ public partial class TypeNameR
             }
         }
 
-        if (nameRControlFlags.IsSet(NameRControlFlags.IncludeStaticModifier) && methodBase.IsStatic)
+        if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeStaticModifier) && methodBase.IsStatic)
         {
             stringBuilder.AppendStaticWithEndingSpace();
         }

@@ -30,5 +30,5 @@ public class CreateEmptyArrayBenchmarks
     public string[] NewEmptyEmpty() => new string[0];
 
     [Benchmark]
-    public string[] ArrayEmpty() => Array.Empty<string>();
+    public string[] ArrayEmpty() => System.Array.Empty<string>();
 }

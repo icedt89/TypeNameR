@@ -3,7 +3,6 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
 using JanHafner.TypeNameR.BenchmarkAndTestUtils;
 using JanHafner.TypeNameR.Helper;
-using System.Diagnostics;
 
 namespace JanHafner.TypeNameR.Benchmark.Benchmarks.StackTraceHelper;
 
