@@ -9,9 +9,10 @@ namespace JanHafner.TypeNameR.Benchmark.Benchmarks.StackTraceHelper;
 [MemoryDiagnoser]
 [RankColumn]
 [Orderer(SummaryOrderPolicy.Method)]
-[SimpleJob(RuntimeMoniker.Net60)]
-[SimpleJob(RuntimeMoniker.Net70)]
+// [SimpleJob(RuntimeMoniker.Net60)]
+// [SimpleJob(RuntimeMoniker.Net70)]
 [SimpleJob(RuntimeMoniker.Net80)]
+// [SimpleJob(RuntimeMoniker.Net90)]
 public class ProcessStackFramesBenchmarks
 {
     private System.Diagnostics.StackTrace stackTrace = default!;
@@ -32,5 +33,5 @@ public class ProcessStackFramesBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public Array Default() => stackTrace.ProcessStackFrames(NameRControlFlags.DontEliminateRecursiveStackFrames);
+    public Array Default() => stackTrace.EnumerateRecursiveStackFrames(includeHiddenStackFrames: false).ToArray();
 }

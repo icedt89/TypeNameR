@@ -8,26 +8,35 @@ namespace JanHafner.TypeNameR.StackTrace;
 /// </summary>
 [DebuggerDisplay("{FileName}:{LineNumber}:{ColumnNumber}")]
 [ExcludeFromCodeCoverage]
-public readonly ref struct StackFrameMetadata(string? fileName, int lineNumber, int columnNumber)
+public readonly ref struct StackFrameMetadata
 {
+    public static StackFrameMetadata Empty => new(ReadOnlySpan<char>.Empty, lineNumber: 0, columnNumber: 0);
+
+    public StackFrameMetadata(ReadOnlySpan<char> fileName, int lineNumber, int columnNumber)
+    {
+        LineNumber = lineNumber;
+        ColumnNumber = columnNumber;
+        FileName = fileName;
+        IsEmpty = fileName.IsEmpty;
+    }
+
     /// <summary>
     /// The line number of the code from the source file.
     /// </summary>
-    public int LineNumber { get; } = lineNumber;
+    public readonly int LineNumber;
 
     /// <summary>
     /// The column number of the code from the source file.
     /// </summary>
-    public int ColumnNumber { get; } = columnNumber;
-
-    /// <summary>
-    /// Returns <see langword="true"/> if FileName is null.
-    /// </summary>
-    [MemberNotNullWhen(false, nameof(IsEmpty))]
-    public bool IsEmpty => FileName is null;
+    public readonly int ColumnNumber;
 
     /// <summary>
     /// The file name (or path) from the source file.
     /// </summary>
-    public string? FileName { get; } = fileName;
+    public readonly ReadOnlySpan<char> FileName;
+
+    /// <summary>
+    /// Returns <see langword="true"/> if FileName is empty.
+    /// </summary>
+    public readonly bool IsEmpty;
 }

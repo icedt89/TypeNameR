@@ -80,7 +80,7 @@ public partial class TypeNameR
             stringBuilder.AppendFullStop();
         }
 
-        stringBuilder.Append(method.Name);
+        stringBuilder.Append(method.Name.AsSpan());
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeGenericParameters) && method.IsGenericMethod)
         {

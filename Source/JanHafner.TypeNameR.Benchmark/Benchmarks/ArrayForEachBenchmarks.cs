@@ -13,6 +13,7 @@ namespace JanHafner.TypeNameR.Benchmark.Benchmarks;
 [SimpleJob(RuntimeMoniker.Net60)]
 [SimpleJob(RuntimeMoniker.Net70)]
 [SimpleJob(RuntimeMoniker.Net80)]
+// [SimpleJob(RuntimeMoniker.Net90)]
 public class ArrayForEachBenchmarks
 {
     // | Method              | Job      | Runtime  | Mean     | Error    | StdDev    | Median   | Ratio | RatioSD | Rank | Allocated | Alloc Ratio |

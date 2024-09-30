@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
@@ -12,6 +12,8 @@
   <ItemGroup>
     <PackageReference Include="Ben.Demystifier" />
     <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.dotTrace" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
     <PackageReference Include="System.IO.Abstractions" />
     <PackageReference Include="AutoFixture.AutoNSubstitute" />
   </ItemGroup>
@@ -20,10 +22,7 @@
     <ProjectReference Include="..\JanHafner.TypeNameR.BenchmarkAndTestUtils\JanHafner.TypeNameR.BenchmarkAndTestUtils.csproj" />
     <ProjectReference Include="..\JanHafner.TypeNameR.StackTrace\JanHafner.TypeNameR.StackTrace.csproj" />
     <ProjectReference Include="..\JanHafner.TypeNameR\JanHafner.TypeNameR.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Experimental\ExperimentalTypeNameR\" />
+    <ProjectReference Include="..\JanHafner.TypeNameR.Experimental\JanHafner.TypeNameR.Experimental.csproj" />
   </ItemGroup>
 
 </Project>

@@ -61,7 +61,7 @@ public sealed partial class TypeNameR : ITypeNameR
         var skipTypeAndGenericsAndNullable = false;
         if (typeNameROptions.PredefinedTypeNames.TryGetValue(type, out var predefinedTypeName))
         {
-            stringBuilder.Append(predefinedTypeName);
+            stringBuilder.Append(predefinedTypeName.AsSpan());
 
             skipTypeAndGenericsAndNullable = true;
         }
@@ -99,9 +99,14 @@ public sealed partial class TypeNameR : ITypeNameR
 
         if (!skipTypeAndGenericsAndNullable)
         {
+            var isGenericValueTuple = type.IsGenericValueTuple();
             var startGenericParameterIndex = 0;
             var genericParametersCount = 0;
-            var processGenerics = nameRControlFlags.HasFlag(NameRControlFlags.IncludeGenericParameters) && type.DetermineActualGenerics(ref masterGenericTypes, out startGenericParameterIndex, out genericParametersCount);
+            var hasProcessableGenerics = false;
+            if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeGenericParameters) || isGenericValueTuple)
+            {
+                hasProcessableGenerics = type.DetermineActualGenerics(ref masterGenericTypes, out startGenericParameterIndex, out genericParametersCount);
+            }
 
             // Nested
             if (type.DeclaringType is not null && !type.IsGenericParameter)
@@ -117,15 +122,30 @@ public sealed partial class TypeNameR : ITypeNameR
                 stringBuilder.AppendNamespace(type.Namespace);
             }
 
-            stringBuilder.Append(type.IsGenericType ? type.Name.AsSpan().RemoveGenericParametersCount() : type.Name);
-
-            if (processGenerics && masterGenericTypes is not null)
+            if (hasProcessableGenerics && masterGenericTypes is not null)
             {
-                stringBuilder.AppendLessThanSign();
+                if (!isGenericValueTuple)
+                {
+                    stringBuilder.Append(type.Name.AsSpan(0, type.Name.IndexOf(Constants.GraveAccent)));
 
-                ProcessGenerics(stringBuilder, masterGenericTypes, nullabilityInfo?.GenericTypeArguments, startGenericParameterIndex, genericParametersCount, nameRControlFlags);
+                    stringBuilder.AppendLessThanSign();
 
-                stringBuilder.AppendGreaterThanSign();
+                    ProcessGenerics(stringBuilder, masterGenericTypes, nullabilityInfo?.GenericTypeArguments, startGenericParameterIndex, genericParametersCount, nameRControlFlags);
+
+                    stringBuilder.AppendGreaterThanSign();
+                }
+                else
+                {
+                    stringBuilder.AppendLeftParenthesis();
+
+                    ProcessGenerics(stringBuilder, masterGenericTypes, nullabilityInfo?.GenericTypeArguments, startGenericParameterIndex, genericParametersCount, nameRControlFlags);
+
+                    stringBuilder.AppendRightParenthesis();
+                }
+            }
+            else
+            {
+                stringBuilder.Append(type.Name.AsSpan());
             }
         }
 

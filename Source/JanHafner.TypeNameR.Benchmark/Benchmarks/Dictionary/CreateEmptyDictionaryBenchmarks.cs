@@ -19,6 +19,7 @@ namespace JanHafner.TypeNameR.Benchmark.Benchmarks.Dictionary;
 [SimpleJob(RuntimeMoniker.Net60)]
 [SimpleJob(RuntimeMoniker.Net70)]
 [SimpleJob(RuntimeMoniker.Net80)]
+// [SimpleJob(RuntimeMoniker.Net90)]
 [HintColumn]
 public class CreateEmptyDictionaryBenchmarks
 {

@@ -12,7 +12,7 @@ public sealed class AppendCallDepth
     {
         // Arrange
         var stringBuilder = new StringBuilder();
-        uint callDepth = 34;
+        const int callDepth = 34;
 
         // Act
         stringBuilder.AppendCallDepth(callDepth);

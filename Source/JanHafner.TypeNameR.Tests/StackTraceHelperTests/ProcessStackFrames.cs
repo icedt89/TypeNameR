@@ -22,60 +22,45 @@ public sealed class ProcessStackFrames
         }
         catch (StackOverflowException stackOverflowException)
         {
-            var stackTrace = new System.Diagnostics.StackTrace(stackOverflowException, false);
-            var originalStackFrames = stackTrace.GetFrames();
+            var stackTrace = new System.Diagnostics.StackTrace(stackOverflowException, fNeedFileInfo: false);
 
             // Act
-            var stackFrames =
-                stackTrace.ProcessStackFrames(NameRControlFlags.None);
+            var stackFrames = stackTrace.EnumerateRecursiveStackFrames(includeHiddenStackFrames: true).ToArray();
 
             // Assert
-            stackFrames.Should().HaveCount(4);
+            stackFrames.Should().HaveCount(8);
 
-            var nonRecursiveStackFrame1 = stackFrames[0];
-            nonRecursiveStackFrame1.CallDepth.Should().Be(10);
-            nonRecursiveStackFrame1.Method.Should().Be(typeof(StackTraceGenerator).GetMethodOrThrow(nameof(StackTraceGenerator.RecursiveCallCore)));
-            originalStackFrames.Count(sf => sf.GetMethod() == nonRecursiveStackFrame1.StackFrame.GetMethod()).Should().Be(10);
+            var stackFrame1 = stackFrames[0];
+            stackFrame1.CallDepth.Should().Be(2);
+            stackFrame1.Method.Should().Be(typeof(StackTraceGenerator).GetMethodOrThrow(nameof(StackTraceGenerator.RecursiveCallCore)));
 
-            var nonRecursiveStackFrame2 = stackFrames[1];
-            nonRecursiveStackFrame2.CallDepth.Should().Be(9);
-            nonRecursiveStackFrame2.Method.Should().Be(typeof(StackTraceGenerator).GetMethodOrThrow(nameof(StackTraceGenerator.RecursiveSubCall)));
-            originalStackFrames.Count(sf => sf.GetMethod() == nonRecursiveStackFrame2.StackFrame.GetMethod()).Should().Be(9);
+            var stackFrame2 = stackFrames[1];
+            stackFrame2.CallDepth.Should().Be(1);
+            stackFrame2.Method.Should().Be(typeof(StackTraceGenerator).GetMethodOrThrow(nameof(StackTraceGenerator.RecursiveSubCall)));
 
-            var nonRecursiveStackFrame3 = stackFrames[2];
-            nonRecursiveStackFrame3.CallDepth.Should().Be(1);
-            nonRecursiveStackFrame3.Method.Should().Be(typeof(StackTraceGenerator).GetMethodOrThrow(nameof(StackTraceGenerator.RecursiveCall)));
-            originalStackFrames.Count(sf => sf.GetMethod() == nonRecursiveStackFrame3.StackFrame.GetMethod()).Should().Be(1);
+            var stackFrame3 = stackFrames[2];
+            stackFrame3.CallDepth.Should().Be(3);
+            stackFrame3.Method.Should().Be(typeof(StackTraceGenerator).GetMethodOrThrow(nameof(StackTraceGenerator.RecursiveCallCore)));
 
-            var nonRecursiveStackFrame4 = stackFrames[3];
-            nonRecursiveStackFrame4.CallDepth.Should().Be(1);
-            nonRecursiveStackFrame4.Method.Should()
-                .Be(typeof(ProcessStackFrames).GetMethodOrThrow(nameof(FlattensRecursiveStackFrames)));
-            originalStackFrames.Count(sf => sf.GetMethod() == nonRecursiveStackFrame3.StackFrame.GetMethod()).Should().Be(1);
-        }
-    }
+            var stackFrame4 = stackFrames[3];
+            stackFrame4.CallDepth.Should().Be(1);
+            stackFrame4.Method.Should().Be(typeof(StackTraceGenerator).GetMethodOrThrow(nameof(StackTraceGenerator.RecursiveSubCall)));
 
-    [Fact]
-    public void DoesNotFlattenRecursiveStackFrames()
-    {
-        try
-        {
-            // Arrange
-            StackTraceGenerator.RecursiveCall(10);
+            var stackFrame5 = stackFrames[4];
+            stackFrame5.CallDepth.Should().Be(3);
+            stackFrame5.Method.Should().Be(typeof(StackTraceGenerator).GetMethodOrThrow(nameof(StackTraceGenerator.RecursiveCallCore)));
 
-            Assert.Fail("That should not happen");
-        }
-        catch (StackOverflowException stackOverflowException)
-        {
-            var stackTrace = new System.Diagnostics.StackTrace(stackOverflowException, false);
-            var originalStackFrames = stackTrace.GetFrames();
+            var stackFrame6 = stackFrames[5];
+            stackFrame6.CallDepth.Should().Be(1);
+            stackFrame6.Method.Should().Be(typeof(StackTraceGenerator).GetMethodOrThrow(nameof(StackTraceGenerator.RecursiveSubCall)));
 
-            // Act
-            var stackFrames =
-                stackTrace.ProcessStackFrames(NameRControlFlags.DontEliminateRecursiveStackFrames);
+            var stackFrame7 = stackFrames[6];
+            stackFrame7.CallDepth.Should().Be(2);
+            stackFrame7.Method.Should().Be(typeof(StackTraceGenerator).GetMethodOrThrow(nameof(StackTraceGenerator.RecursiveCallCore)));
 
-            // Assert
-            stackFrames.Should().HaveCount(originalStackFrames.Length);
+            var stackFrame8 = stackFrames[7];
+            stackFrame8.CallDepth.Should().Be(1);
+            stackFrame8.Method.Should().Be(typeof(StackTraceGenerator).GetMethodOrThrow(nameof(StackTraceGenerator.RecursiveCall)));
         }
     }
 
@@ -84,17 +69,17 @@ public sealed class ProcessStackFrames
     {
         // Arrange
         var stackFrameMethod = Substitute.For<MethodBase>();
-        stackFrameMethod.IsDefined(typeof(StackTraceHiddenAttribute), false).Returns(true);
+        stackFrameMethod.IsDefined(typeof(StackTraceHiddenAttribute), inherit: false).Returns(returnThis: true);
 
         var stackFrame = Substitute.For<StackFrame>();
         stackFrame.GetMethod().Returns(stackFrameMethod);
 
         var stackTrace = Substitute.For<System.Diagnostics.StackTrace>();
-        stackTrace.GetFrame(0).Returns(stackFrame);
-        stackTrace.FrameCount.Returns(1);
+        stackTrace.GetFrame(index: 0).Returns(stackFrame);
+        stackTrace.FrameCount.Returns(returnThis: 1);
 
         // Act
-        var flattenedStackFrames = stackTrace.ProcessStackFrames(NameRControlFlags.None);
+        var flattenedStackFrames = stackTrace.EnumerateRecursiveStackFrames(includeHiddenStackFrames: false).ToArray();
 
         // Assert
         flattenedStackFrames.Should().BeEmpty();

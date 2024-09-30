@@ -1,7 +1,7 @@
 ﻿using JanHafner.TypeNameR.StackTrace;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace JanHafner.TypeNameR.Helper;
 
@@ -12,47 +12,43 @@ internal static class StackTraceHelper
            || method.HasStackTraceHiddenAttribute()
            || (method.DeclaringType?.HasStackTraceHiddenAttribute() ?? false);
 
-    public static RecursiveStackFrameMetadata[] ProcessStackFrames(this System.Diagnostics.StackTrace stackTrace, NameRControlFlags nameRControlFlags)
+    public static bool TryGetStackFrame(this System.Diagnostics.StackTrace stackTrace, int stackFrameIndex, bool includeHiddenStackFrames,
+        [NotNullWhen(true)] out StackFrame? stackFrame,
+        out MethodBase? stackFrameMethod)
     {
-        var resultStackFrames = new Dictionary<object, RecursiveStackFrameMetadata>(stackTrace.FrameCount);
+        stackFrame = stackTrace.GetFrame(stackFrameIndex);
+        stackFrameMethod = stackFrame?.GetMethod();
+
+        return stackFrame is not null
+               && (stackFrameMethod is null
+                   || includeHiddenStackFrames
+                   || !stackFrameMethod.IsHidden());
+    }
+
+    public static IEnumerable<RecursiveStackFrameMetadata> EnumerateRecursiveStackFrames(this System.Diagnostics.StackTrace stackTrace, bool includeHiddenStackFrames)
+    {
+        RecursiveStackFrameMetadata? previousRecursiveStackFrameMetadata = null;
         for (var stackFrameIndex = 0; stackFrameIndex < stackTrace.FrameCount; stackFrameIndex++)
         {
-            var stackFrame = stackTrace.GetFrame(stackFrameIndex);
-            if (stackFrame is null)
+            if (!stackTrace.TryGetStackFrame(stackFrameIndex, includeHiddenStackFrames, out var stackFrame, out var stackFrameMethod))
             {
                 continue;
             }
 
-            object key = stackFrame;
-
-            var stackFrameMethod = stackFrame.GetMethod();
-            if (stackFrameMethod is not null)
+            if (previousRecursiveStackFrameMetadata is not null)
             {
-                if (!nameRControlFlags.HasFlag(NameRControlFlags.IncludeHiddenStackFrames) && stackFrameMethod.IsHidden())
+                if (previousRecursiveStackFrameMetadata.Value.IsSameMethod(stackFrameMethod))
                 {
+                    previousRecursiveStackFrameMetadata = previousRecursiveStackFrameMetadata.Value.IncrementCallDepth();
+
                     continue;
                 }
 
-                if (!nameRControlFlags.HasFlag(NameRControlFlags.DontEliminateRecursiveStackFrames))
-                {
-                    key = stackFrameMethod;
-                }
+                yield return previousRecursiveStackFrameMetadata.Value;
             }
 
-            ref var valOrNew = ref CollectionsMarshal.GetValueRefOrAddDefault(resultStackFrames, key, out var exists);
-            if (!exists)
-            {
-                valOrNew.StackFrame = stackFrame;
-                valOrNew.Method = stackFrameMethod;
-                valOrNew.CallDepth = 1;
-            }
-            else
-            {
-                valOrNew.CallDepth++;
-            }
+            previousRecursiveStackFrameMetadata = new RecursiveStackFrameMetadata(stackFrame, method: stackFrameMethod);
         }
-
-        return resultStackFrames.Values.ToArray();
     }
 
     public static StackFrameMetadata GetStackFrameMetadata(this StackFrame stackFrame)
@@ -60,7 +56,7 @@ internal static class StackTraceHelper
         var fileName = stackFrame.GetFileName();
         if (fileName is null)
         {
-            return default;
+            return StackFrameMetadata.Empty;
         }
 
         var lineNumber = stackFrame.GetFileLineNumber();

@@ -17,7 +17,6 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
             }
             catch (StackOverflowException stackOverflowException)
             {
-                var huf = stackOverflowException.ToString();
                 stackTrace = new System.Diagnostics.StackTrace(stackOverflowException, true);
             }
 
@@ -28,9 +27,8 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
 
             // Assert
             generated.Should().Be(
-                @"  at public static Task<TResult?> JanHafner.TypeNameR.BenchmarkAndTestUtils.StackTraceGenerator.CallRecursiveGenericMethodAsync<TResult>(int? recursionDepth = 1, int stopAt = 10) x 9 in X:\icedt89\TypeNameR\Source\JanHafner.TypeNameR.BenchmarkAndTestUtils\StackTraceGenerator.cs:line 30:13
-  at public static async Task<TResult?> JanHafner.TypeNameR.BenchmarkAndTestUtils.StackTraceGenerator.CallRecursiveGenericMethodWithAsyncStateMachineAttributeAsync<TResult>(int? recursionDepth = 1, int stopAt = 10) in X:\icedt89\TypeNameR\Source\JanHafner.TypeNameR.BenchmarkAndTestUtils\StackTraceGenerator.cs:line 45:9
-  at public void JanHafner.TypeNameR.Tests.TypeNameRTests.GenerateDisplayOfStackTrace.GenerateStackTraceDisplay() in X:\icedt89\TypeNameR\Source\JanHafner.TypeNameR.Tests\TypeNameRTests\GenerateDisplayOfStackTrace.cs:line 16:17");
+                @"  at public static Task<TResult?> JanHafner.TypeNameR.BenchmarkAndTestUtils.StackTraceGenerator.CallRecursiveGenericMethodAsync<TResult>(int? recursionDepth = 1, int stopAt = 10) x 9 in X:\icedt89\TypeNameR\Source\JanHafner.TypeNameR.BenchmarkAndTestUtils\StackTraceGenerator.cs:line 37:13
+  at public static async Task<TResult?> JanHafner.TypeNameR.BenchmarkAndTestUtils.StackTraceGenerator.CallRecursiveGenericMethodWithAsyncStateMachineAttributeAsync<TResult>(int? recursionDepth = 1, int stopAt = 10) in X:\icedt89\TypeNameR\Source\JanHafner.TypeNameR.BenchmarkAndTestUtils\StackTraceGenerator.cs:line 52:9");
         }
     }
 }

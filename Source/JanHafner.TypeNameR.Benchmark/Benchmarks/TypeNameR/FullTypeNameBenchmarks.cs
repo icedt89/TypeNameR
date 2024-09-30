@@ -11,6 +11,7 @@ namespace JanHafner.TypeNameR.Benchmark.Benchmarks.TypeNameR;
 [SimpleJob(RuntimeMoniker.Net60)]
 [SimpleJob(RuntimeMoniker.Net70)]
 [SimpleJob(RuntimeMoniker.Net80)]
+// [SimpleJob(RuntimeMoniker.Net90)]
 public class FullTypeNameBenchmarks
 {
     // | Method              | Job      | Runtime  | Mean       | Error    | StdDev   | Median     | Ratio | RatioSD | Rank | Gen0   | Allocated | Alloc Ratio |

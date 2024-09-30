@@ -16,11 +16,18 @@ public static class StackTraceGenerator
             throw new StackOverflowException();
         }
 
+        current++;
+
+        if (current % 3 != 0)
+        {
+            RecursiveCallCore(current, maxRecursionDepth);
+        }
+
         RecursiveSubCall(current, maxRecursionDepth);
     }
 
     [DoesNotReturn]
-    public static void RecursiveSubCall(int current, int maxRecursionDepth) => RecursiveCallCore(current + 1, maxRecursionDepth);
+    public static void RecursiveSubCall(int current, int maxRecursionDepth) => RecursiveCallCore(current, maxRecursionDepth);
 
     [DoesNotReturn]
     public static Task<TResult> CallRecursiveGenericMethodAsync<TResult>(int? recursionDepth = 1, int stopAt = 10)

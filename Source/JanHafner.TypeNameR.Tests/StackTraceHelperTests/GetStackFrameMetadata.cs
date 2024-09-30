@@ -39,7 +39,7 @@ public sealed class GetStackFrameMetadata
         var stackFrameMetadata = stackFrameSubstitute.GetStackFrameMetadata();
 
         // Assert
-        stackFrameMetadata.FileName.Should().Be(expectedFileName);
+        stackFrameMetadata.FileName.ToString().Should().Be(expectedFileName);
         stackFrameMetadata.LineNumber.Should().Be(expectedLineNumber);
         stackFrameMetadata.ColumnNumber.Should().Be(expectedColumnNumber);
     }

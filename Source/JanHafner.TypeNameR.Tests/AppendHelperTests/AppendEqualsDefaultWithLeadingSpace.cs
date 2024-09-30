@@ -17,6 +17,6 @@ public sealed class AppendEqualsDefaultWithLeadingSpace
         stringBuilder.AppendEqualsDefaultWithLeadingSpace();
 
         // Assert
-        stringBuilder.ToString().Should().Be(Constants.EqualsSign + Constants.DefaultWithLeadingSpace);
+        stringBuilder.ToString().Should().Be(Constants.EqualsDefaultWithLeadingSpace);
     }
 }
