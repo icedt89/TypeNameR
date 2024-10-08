@@ -4,20 +4,33 @@ using System.Reflection;
 
 namespace JanHafner.TypeNameR.Experimental.StackTrace;
 
-[DebuggerDisplay("[CallDepth = {CallDepth}] {StackFrame}")]
-internal struct RecursiveStackFrameMetadata
+[DebuggerDisplay("[{CallDepth}] {StackFrame}")]
+[ExcludeFromCodeCoverage]
+internal readonly struct RecursiveStackFrameMetadata
 {
-    public RecursiveStackFrameMetadata(StackFrame stackFrame)
+    public RecursiveStackFrameMetadata(StackFrame stackFrame, int callDepth = Constants.DefaultCallDepth, MethodBase? method = null)
     {
         StackFrame = stackFrame;
+        CallDepth = callDepth;
+        Method = method;
     }
 
-    public StackFrame StackFrame { get; init; }
+    public readonly int CallDepth;
 
-    public MethodBase? Method { get; set; }
+    public readonly StackFrame StackFrame;
 
-    public uint CallDepth { get; set; } = Constants.DefaultCallDepth;
+    public readonly MethodBase? Method;
 
-    [MemberNotNullWhen(true, nameof(StackFrame))]
-    public bool IsNotEmpty => StackFrame is not null;
+    public bool IsSameMethod(MethodBase? method)
+    {
+        if (Method is null || method is null)
+        {
+            return false;
+        }
+
+        return Method == method;
+    }
+
+    public RecursiveStackFrameMetadata IncrementCallDepth()
+        => new(StackFrame, CallDepth + 1, Method);
 }

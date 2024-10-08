@@ -3,8 +3,6 @@ using System.Reflection;
 using System.Text;
 #if NET6_0
 using NullabilityInfoContext = Nullability.NullabilityInfoContextEx;
-using NullabilityInfo = Nullability.NullabilityInfoEx;
-using NullabilityState = Nullability.NullabilityStateEx;
 #endif
 
 namespace JanHafner.TypeNameR.Experimental;
@@ -68,7 +66,7 @@ public partial class TypeNameR
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeParameterDefaultValue))
         {
-            ProcessParameterSuffix(stringBuilder, parameterInfo);
+            ProcessParameterSuffix(stringBuilder, parameterInfo, nameRControlFlags);
         }
     }
 
@@ -89,7 +87,7 @@ public partial class TypeNameR
             }
         }
 
-        // The "in" and "out" keywords are only valid on non return parameter
+        // The "in" and "out" keywords are only valid on non-return parameter
         if (parameterInfo.Position > Constants.ReturnParameterIndex)
         {
             if (parameterInfo.IsOut)
@@ -116,7 +114,7 @@ public partial class TypeNameR
             return;
         }
 
-        // The "params" keyword is only valid on non return parameter
+        // The "params" keyword is only valid on non-return parameter
         if (parameterInfo.Position > Constants.ReturnParameterIndex
             && nameRControlFlags.HasFlag(NameRControlFlags.IncludeParamsKeyword)
             && parameterInfo.HasParamArrayAttribute())
@@ -125,19 +123,10 @@ public partial class TypeNameR
         }
     }
 
-    private static void ProcessParameterSuffix(StringBuilder stringBuilder, ParameterInfo parameterInfo)
+    private static void ProcessParameterSuffix(StringBuilder stringBuilder, ParameterInfo parameterInfo, NameRControlFlags nameRControlFlags)
     {
         if (!parameterInfo.IsOptional || !parameterInfo.HasDefaultValue)
         {
-            return;
-        }
-
-        stringBuilder.AppendSpace();
-
-        if (parameterInfo.DefaultValue is string @string)
-        {
-            stringBuilder.AppendQuotedParameterValue(@string);
-
             return;
         }
 
@@ -155,6 +144,77 @@ public partial class TypeNameR
             return;
         }
 
-        stringBuilder.AppendEqualsValue(parameterInfo.DefaultValue);
+        switch (parameterInfo.DefaultValue)
+        {
+            case Enum value:
+                if (nameRControlFlags.HasFlag(NameRControlFlags.PrintEnumParameterDefaultValueWithoutEnumTypeName))
+                {
+                    stringBuilder.AppendEqualsValue(value.ToString());
+
+                    return;
+                }
+
+                stringBuilder.AppendEqualsEnumValue(parameterInfo.ParameterType.Name, value.ToString());
+
+                return;
+            case string value:
+                stringBuilder.AppendEqualsQuotedValue(value);
+
+                return;
+            case bool value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case char value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case sbyte value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case byte value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case short value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case int value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case long value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case float value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case double value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case decimal value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case ushort value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case uint value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            case ulong value:
+                stringBuilder.AppendEqualsValue(value);
+
+                return;
+            default:
+                throw new NotSupportedException($"Parameter default value of type '{parameterInfo.DefaultValue.GetType().Name}' is not supported.");
+        }
     }
 }

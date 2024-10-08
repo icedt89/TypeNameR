@@ -10,7 +10,7 @@ namespace JanHafner.TypeNameR.Experimental;
 /// </summary>
 public sealed class TypeNameROptions
 {
-    public static TypeNameROptions Default = new(JanHafner.TypeNameR.Experimental.Helper.PredefinedTypeNames.Default);
+    public static TypeNameROptions Default = new(Helper.PredefinedTypeNames.Default);
 
     /// <summary>
     /// Initializes a new instance.

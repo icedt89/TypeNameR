@@ -3,8 +3,6 @@ using System.Reflection;
 using System.Text;
 #if NET6_0
 using NullabilityInfoContext = Nullability.NullabilityInfoContextEx;
-using NullabilityInfo = Nullability.NullabilityInfoEx;
-using NullabilityState = Nullability.NullabilityStateEx;
 #endif
 
 namespace JanHafner.TypeNameR.Experimental;
@@ -79,7 +77,7 @@ public partial class TypeNameR
             stringBuilder.AppendFullStop();
         }
 
-        stringBuilder.Append(method.Name);
+        stringBuilder.Append(method.Name.AsSpan());
 
         if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeGenericParameters) && method.IsGenericMethod)
         {

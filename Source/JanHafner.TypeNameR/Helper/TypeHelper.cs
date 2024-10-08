@@ -1,4 +1,6 @@
-﻿namespace JanHafner.TypeNameR.Helper;
+﻿using System.Runtime.CompilerServices;
+
+namespace JanHafner.TypeNameR.Helper;
 
 internal static class TypeHelper
 {
@@ -41,7 +43,7 @@ internal static class TypeHelper
     public static bool IsGenericValueTuple(this Type type)
     {
 #if NET8_0_OR_GREATER
-        return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTuple<>);
+        return type.IsGenericType && type.IsAssignableTo(typeof(ITuple)) && type.IsValueType;
 #else
         return string.Equals(type.Namespace, Constants.SystemNamespaceName, StringComparison.Ordinal) && type.Name.StartsWith(Constants.GenericValueTupleName, StringComparison.Ordinal);
 #endif

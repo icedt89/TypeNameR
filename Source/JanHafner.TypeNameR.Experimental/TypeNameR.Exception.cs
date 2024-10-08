@@ -5,8 +5,6 @@ using System.Reflection;
 using System.Text;
 #if NET6_0
 using NullabilityInfoContext = Nullability.NullabilityInfoContextEx;
-using NullabilityInfo = Nullability.NullabilityInfoEx;
-using NullabilityState = Nullability.NullabilityStateEx;
 #endif
 
 namespace JanHafner.TypeNameR.Experimental;
@@ -43,22 +41,52 @@ public partial class TypeNameR
     private void ProcessStackTrace(StringBuilder stringBuilder, NullabilityInfoContext nullabilityInfoContext, System.Diagnostics.StackTrace stackTrace,
         NameRControlFlags nameRControlFlags)
     {
-        var stackFrames = stackTrace.ProcessStackFrames(nameRControlFlags).ToArray();
-        for (var stackFrameIndex = 0; stackFrameIndex < stackFrames.Length; stackFrameIndex++)
+        if (nameRControlFlags.HasFlag(NameRControlFlags.DontEliminateRecursiveStackFrames))
         {
-            var recursiveStackFrame = stackFrames[stackFrameIndex];
+            ProcessNonRecursiveStackTrace(stringBuilder, nullabilityInfoContext, stackTrace, nameRControlFlags);
 
-            ProcessStackFrame(stringBuilder, nullabilityInfoContext, recursiveStackFrame.StackFrame, recursiveStackFrame.Method, recursiveStackFrame.CallDepth, nameRControlFlags);
+            return;
+        }
 
-            if (stackFrameIndex < stackFrames.Length - 1)
+        ProcessRecursiveStackTrace(stringBuilder, nullabilityInfoContext, stackTrace, nameRControlFlags);
+    }
+
+    private void ProcessNonRecursiveStackTrace(StringBuilder stringBuilder, NullabilityInfoContext nullabilityInfoContext,
+        System.Diagnostics.StackTrace stackTrace,
+        NameRControlFlags nameRControlFlags)
+    {
+        for (var stackFrameIndex = 0; stackFrameIndex < stackTrace.FrameCount; stackFrameIndex++)
+        {
+            if (!stackTrace.TryGetStackFrame(stackFrameIndex, nameRControlFlags.HasFlag(NameRControlFlags.IncludeHiddenStackFrames), out var stackFrame, out var stackFrameMethod))
+            {
+                continue;
+            }
+
+            ProcessStackFrame(stringBuilder, nullabilityInfoContext, stackFrame, stackFrameMethod, Constants.DefaultCallDepth, nameRControlFlags);
+
+            if (stackFrameIndex < stackTrace.FrameCount - 1)
             {
                 stringBuilder.AppendLine();
             }
         }
     }
 
+    private void ProcessRecursiveStackTrace(StringBuilder stringBuilder, NullabilityInfoContext nullabilityInfoContext,
+        System.Diagnostics.StackTrace stackTrace,
+        NameRControlFlags nameRControlFlags)
+    {
+        foreach (var recursiveStackFrameMetadata2 in stackTrace.EnumerateRecursiveStackFrames(nameRControlFlags.HasFlag(NameRControlFlags.IncludeHiddenStackFrames)))
+        {
+            ProcessStackFrame(stringBuilder, nullabilityInfoContext, recursiveStackFrameMetadata2.StackFrame, recursiveStackFrameMetadata2.Method, recursiveStackFrameMetadata2.CallDepth, nameRControlFlags);
+
+            stringBuilder.AppendLine();
+        }
+
+        stringBuilder.Remove(stringBuilder.Length - Environment.NewLine.Length, Environment.NewLine.Length);
+    }
+
     private void ProcessStackFrame(StringBuilder stringBuilder, NullabilityInfoContext nullabilityInfoContext, StackFrame stackFrame, MethodBase? methodBase,
-        uint callDepth, NameRControlFlags nameRControlFlags)
+        int callDepth, NameRControlFlags nameRControlFlags)
     {
         stringBuilder.AppendStackFramePreamble();
 

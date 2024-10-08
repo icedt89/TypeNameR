@@ -60,7 +60,7 @@ public sealed partial class TypeNameR : ITypeNameR
         var skipTypeAndGenericsAndNullable = false;
         if (typeNameROptions.PredefinedTypeNames.TryGetValue(type, out var predefinedTypeName))
         {
-            stringBuilder.Append(predefinedTypeName);
+            stringBuilder.Append(predefinedTypeName.AsSpan());
 
             skipTypeAndGenericsAndNullable = true;
         }
@@ -125,7 +125,7 @@ public sealed partial class TypeNameR : ITypeNameR
             {
                 if (!isGenericValueTuple)
                 {
-                    stringBuilder.Append(type.Name.RemoveGenericParametersArity());
+                    stringBuilder.Append(type.Name.AsSpan(0, type.Name.IndexOf(Constants.GraveAccent)));
 
                     stringBuilder.AppendLessThanSign();
 
@@ -144,7 +144,7 @@ public sealed partial class TypeNameR : ITypeNameR
             }
             else
             {
-                stringBuilder.Append(type.Name);
+                stringBuilder.Append(type.Name.AsSpan());
             }
         }
 

@@ -1,11 +1,11 @@
-﻿using JanHafner.TypeNameR.Experimental.Exceptions;
-using System.Reflection;
-using System.Text;
-#if NET8_0_OR_GREATER
+﻿#if NET8_0_OR_GREATER
 using ExceptionStackTraceSetter = JanHafner.TypeNameR.Experimental.StackTrace.UnsafeExceptionStackTraceSetter;
 #else
 using ExceptionStackTraceSetter = JanHafner.TypeNameR.Experimental.StackTrace.ReflectionExceptionStackTraceSetter;
 #endif
+using JanHafner.TypeNameR.Experimental.Exceptions;
+using System.Reflection;
+using System.Text;
 
 namespace JanHafner.TypeNameR.Experimental.StackTrace;
 

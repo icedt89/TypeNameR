@@ -20,9 +20,9 @@ internal static class Constants
 
     public const string ThisWithEndingSpace = "this ";
 
-    public const string DefaultWithLeadingSpace = " default";
+    public const string EqualsDefaultWithLeadingSpace = " = default";
 
-    public const string NullWithLeadingSpace = " null";
+    public const string EqualsNullWithLeadingSpace = " = null";
 
     public const string ColonWithEndingSpace = ": ";
 
@@ -80,7 +80,7 @@ internal static class Constants
 
     public const string UnknownStackFrameName = "<unknown>";
 
-    public const uint DefaultCallDepth = 1;
+    public const int DefaultCallDepth = 1;
 
     public const sbyte ReturnParameterIndex = -1;
 
@@ -89,4 +89,8 @@ internal static class Constants
     public const string ExceptionStackTraceBackingFieldName = "_stackTraceString";
 
     public const string Dynamic = "dynamic";
+
+    public const string SystemNamespaceName = "System";
+
+    public const string GenericValueTupleName = "ValueTuple`";
 }

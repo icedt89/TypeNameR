@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using JanHafner.TypeNameR.Experimental.StackTrace;
+using System.Diagnostics;
 
 namespace JanHafner.TypeNameR.Experimental;
 
@@ -100,9 +101,14 @@ public enum NameRControlFlags : uint
     IncludeDynamic = 1 << 16,
 
     /// <summary>
-    /// When set, recursive stack frames will not be eliminated
+    /// When set, recursive stack frames will not be eliminated.
     /// </summary>
     DontEliminateRecursiveStackFrames = 1 << 17,
+
+    /// <summary>
+    /// When set, prints the default value of an enum parameter as <c>StringSplitOptions options = RemoveEmptyEntries</c> instead of <c>StringSplitOptions options = StringSplitOptions.RemoveEmptyEntries</c>.
+    /// </summary>
+    PrintEnumParameterDefaultValueWithoutEnumTypeName = 1 << 18,
 
     /// <summary>
     /// Shortcut for all flags (excluding <see cref="IncludeDynamic"/>, <see cref="StoreOriginalStackTraceInExceptionData"/>, <see cref="DontEliminateRecursiveStackFrames"/> and <see cref="FallbackToStackFrameMetadataProvider"/>).
@@ -120,5 +126,6 @@ public enum NameRControlFlags : uint
         | IncludeInnerExceptions
         | IncludeParamsKeyword
         | IncludeThisKeyword
-        | IncludeNullabilityInfo,
+        | IncludeNullabilityInfo
+        | PrintEnumParameterDefaultValueWithoutEnumTypeName,
 }

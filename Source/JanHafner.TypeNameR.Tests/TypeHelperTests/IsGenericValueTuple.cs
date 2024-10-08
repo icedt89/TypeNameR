@@ -7,7 +7,21 @@ namespace JanHafner.TypeNameR.Tests.TypeHelperTests;
 public sealed class IsGenericValueTuple
 {
     [Fact]
-    public void IsTrueForExplicitGenericValueTuple()
+    public void IsTrueForExplicitGenericValueTupleT1()
+    {
+        // Arrange
+        var theObject = new ValueTuple<string>("");
+        var type = theObject.GetType();
+
+        // Act
+        var isValueTuple = type.IsGenericValueTuple();
+
+        // Assert
+        isValueTuple.Should().BeTrue();
+    }
+    
+    [Fact]
+    public void IsTrueForExplicitGenericValueTupleT2()
     {
         // Arrange
         var theObject = new ValueTuple<string, int>("", 0);
@@ -19,12 +33,40 @@ public sealed class IsGenericValueTuple
         // Assert
         isValueTuple.Should().BeTrue();
     }
-
+    
     [Fact]
-    public void IsTrueForImplicitGenericValueTuple()
+    public void IsTrueForExplicitGenericValueTupleT3()
+    {
+        // Arrange
+        var theObject = new ValueTuple<string, int, bool>("", 0, false);
+        var type = theObject.GetType();
+
+        // Act
+        var isValueTuple = type.IsGenericValueTuple();
+
+        // Assert
+        isValueTuple.Should().BeTrue();
+    }
+    
+    [Fact]
+    public void IsTrueForImplicitGenericValueTupleT2()
     {
         // Arrange
         var theObject = ("", 0);
+        var type = theObject.GetType();
+
+        // Act
+        var isValueTuple = type.IsGenericValueTuple();
+
+        // Assert
+        isValueTuple.Should().BeTrue();
+    }
+    
+    [Fact]
+    public void IsTrueForImplicitGenericValueTupleT3()
+    {
+        // Arrange
+        var theObject = ("", 0, false);
         var type = theObject.GetType();
 
         // Act

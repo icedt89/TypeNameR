@@ -1,5 +1,5 @@
-﻿using System.Text;
-using StackFrameMetadata = JanHafner.TypeNameR.Experimental.StackTrace.StackFrameMetadata;
+﻿using JanHafner.TypeNameR.Experimental.StackTrace;
+using System.Text;
 
 namespace JanHafner.TypeNameR.Experimental.Helper;
 
@@ -20,7 +20,7 @@ internal static class AppendHelper
     public static void AppendPlus(this StringBuilder stringBuilder)
         => stringBuilder.Append(Constants.Plus);
 
-    public static void AppendNamespace(this StringBuilder stringBuilder, string @namespace)
+    public static void AppendNamespace(this StringBuilder stringBuilder, ReadOnlySpan<char> @namespace)
         => stringBuilder.Append(@namespace).Append(Constants.FullStop);
 
     public static void AppendCommaWithEndingSpace(this StringBuilder stringBuilder)
@@ -65,7 +65,7 @@ internal static class AppendHelper
     public static void AppendStaticWithEndingSpace(this StringBuilder stringBuilder)
         => stringBuilder.Append(Constants.StaticWithEndingSpace);
 
-    public static void AppendParameterName(this StringBuilder stringBuilder, string parameterName)
+    public static void AppendParameterName(this StringBuilder stringBuilder, ReadOnlySpan<char> parameterName)
         => stringBuilder.Append(Constants.Space).Append(parameterName);
 
     public static void AppendOutWithEndingSpace(this StringBuilder stringBuilder)
@@ -79,21 +79,71 @@ internal static class AppendHelper
 
     public static void AppendParamsWithEndingSpace(this StringBuilder stringBuilder)
         => stringBuilder.Append(Constants.ParamsWithEndingSpace);
+    
+    public static void AppendEqualsDefaultWithLeadingSpace(this StringBuilder stringBuilder)
+        => stringBuilder.Append(Constants.EqualsDefaultWithLeadingSpace);
 
-    public static void AppendQuotedParameterValue(this StringBuilder stringBuilder, string value)
+    public static void AppendEqualsNullWithLeadingSpace(this StringBuilder stringBuilder)
+        => stringBuilder.Append(Constants.EqualsNullWithLeadingSpace);
+
+    #region AppendEqualsValue
+
+    private static StringBuilder AppendEqualsValuePrefix(this StringBuilder stringBuilder)
+        => stringBuilder.Append(Constants.Space + Constants.EqualsSignWithEndingSpace);
+
+    public static void AppendEqualsQuotedValue(this StringBuilder stringBuilder, ReadOnlySpan<char> value)
         => stringBuilder
-            .Append(Constants.EqualsSignWithEndingSpace + Constants.QuotationMark)
+            .AppendEqualsValuePrefix()
+            .Append(Constants.QuotationMark)
             .Append(value)
             .Append(Constants.QuotationMark);
 
-    public static void AppendEqualsDefaultWithLeadingSpace(this StringBuilder stringBuilder)
-        => stringBuilder.Append(Constants.EqualsSign + Constants.DefaultWithLeadingSpace);
+    public static void AppendEqualsEnumValue(this StringBuilder stringBuilder, ReadOnlySpan<char> enumTypeName, ReadOnlySpan<char> memberName)
+        => stringBuilder.AppendEqualsValuePrefix().Append(enumTypeName).Append(Constants.FullStop).Append(memberName);
 
-    public static void AppendEqualsNullWithLeadingSpace(this StringBuilder stringBuilder)
-        => stringBuilder.Append(Constants.EqualsSign + Constants.NullWithLeadingSpace);
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, ReadOnlySpan<char> value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
 
-    public static void AppendEqualsValue(this StringBuilder stringBuilder, object value)
-        => stringBuilder.Append(Constants.EqualsSignWithEndingSpace).Append(value);
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, bool value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, char value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, sbyte value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, byte value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, short value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, int value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, long value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, float value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, double value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, decimal value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, ushort value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, uint value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    public static void AppendEqualsValue(this StringBuilder stringBuilder, ulong value)
+        => stringBuilder.AppendEqualsValuePrefix().Append(value);
+
+    #endregion
 
     public static void AppendUnknownStackFrameName(this StringBuilder stringBuilder)
         => stringBuilder.Append(Constants.UnknownStackFrameName);
@@ -101,10 +151,10 @@ internal static class AppendHelper
     public static void AppendMoveNextCallSuffix(this StringBuilder stringBuilder)
         => stringBuilder.Append(Constants.MoveNextCallSuffix);
 
-    public static void AppendCallDepth(this StringBuilder stringBuilder, uint callDepth)
+    public static void AppendCallDepth(this StringBuilder stringBuilder, int callDepth)
         => stringBuilder.Append(Constants.RecursionMarkWithLeadingAndEndingSpace).Append(callDepth);
 
-    public static void AppendExceptionMessage(this StringBuilder stringBuilder, string exceptionMessage)
+    public static void AppendExceptionMessage(this StringBuilder stringBuilder, ReadOnlySpan<char> exceptionMessage)
         => stringBuilder.Append(Constants.ColonWithEndingSpace).Append(exceptionMessage);
 
     public static void AppendStackFramePreamble(this StringBuilder stringBuilder)
@@ -112,29 +162,20 @@ internal static class AppendHelper
 
     public static void AppendStackFrameMetadata(this StringBuilder stringBuilder, in StackFrameMetadata stackFrameMetadata)
     {
-        stringBuilder.AppendSourceFileName(stackFrameMetadata.FileName!);
+        stringBuilder.Append(Constants.InSourceWithLeadingAndEndingSpace).Append(stackFrameMetadata.FileName);
 
         if (stackFrameMetadata.LineNumber == 0)
         {
             return;
         }
 
-        stringBuilder.AppendLineNumber(stackFrameMetadata.LineNumber);
+        stringBuilder.Append(Constants.LineWithEndingSpace).Append(stackFrameMetadata.LineNumber);
 
         if (stackFrameMetadata.ColumnNumber > 0)
         {
-            stringBuilder.AppendColumNumber(stackFrameMetadata.ColumnNumber);
+            stringBuilder.Append(Constants.Colon).Append(stackFrameMetadata.ColumnNumber);
         }
     }
-
-    private static void AppendSourceFileName(this StringBuilder stringBuilder, string fileName)
-        => stringBuilder.Append(Constants.InSourceWithLeadingAndEndingSpace).Append(fileName);
-
-    private static void AppendLineNumber(this StringBuilder stringBuilder, int lineNumber)
-        => stringBuilder.Append(Constants.LineWithEndingSpace).Append(lineNumber);
-
-    private static void AppendColumNumber(this StringBuilder stringBuilder, int columnNumber)
-        => stringBuilder.Append(Constants.Colon).Append(columnNumber);
 
     public static void AppendDynamic(this StringBuilder stringBuilder)
         => stringBuilder.Append(Constants.Dynamic);

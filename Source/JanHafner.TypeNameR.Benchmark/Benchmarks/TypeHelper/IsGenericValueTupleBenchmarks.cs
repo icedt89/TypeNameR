@@ -1,10 +1,13 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace JanHafner.TypeNameR.Benchmark.Benchmarks.TypeHelper;
 
-// [MemoryDiagnoser]
+[MemoryDiagnoser]
 [RankColumn]
 [Orderer(SummaryOrderPolicy.FastestToSlowest)]
 [SimpleJob(RuntimeMoniker.Net60)]
@@ -13,36 +16,36 @@ namespace JanHafner.TypeNameR.Benchmark.Benchmarks.TypeHelper;
 [SimpleJob(RuntimeMoniker.Net90)]
 public class IsGenericValueTupleBenchmarks
 {
-    // | Method                               | Job      | Runtime  | Mean      | Error     | StdDev    | Median    | Ratio | RatioSD | Rank |
-    // |------------------------------------- |--------- |--------- |----------:|----------:|----------:|----------:|------:|--------:|-----:|
-    // | FrameworkAgnosticIsGenericValueTuple | .NET 6.0 | .NET 6.0 | 17.534 ns | 0.5344 ns | 1.5672 ns | 17.029 ns |  1.00 |    0.14 |    1 |
-    // | IsGenericValueTuple                  | .NET 6.0 | .NET 6.0 | 17.672 ns | 0.6901 ns | 1.9912 ns | 17.019 ns |  1.01 |    0.16 |    1 |
-    // | IsGenericValueTuple1                 | .NET 6.0 | .NET 6.0 | 31.229 ns | 0.6501 ns | 1.4807 ns | 31.183 ns |  1.79 |    0.20 |    2 |
-    // |                                      |          |          |           |           |           |           |       |         |      |
-    // | IsGenericValueTuple                  | .NET 7.0 | .NET 7.0 |  8.290 ns | 0.1940 ns | 0.1620 ns |  8.335 ns |  1.00 |    0.03 |    1 |
-    // | FrameworkAgnosticIsGenericValueTuple | .NET 7.0 | .NET 7.0 |  8.900 ns | 0.2467 ns | 0.6999 ns |  8.752 ns |  1.07 |    0.09 |    1 |
-    // | IsGenericValueTuple1                 | .NET 7.0 | .NET 7.0 | 25.608 ns | 0.5099 ns | 0.5008 ns | 25.649 ns |  3.09 |    0.08 |    2 |
-    // |                                      |          |          |           |           |           |           |       |         |      |
-    // | IsGenericValueTuple1                 | .NET 8.0 | .NET 8.0 |  2.734 ns | 0.0829 ns | 0.1107 ns |  2.710 ns |  0.27 |    0.01 |    1 |
-    // | FrameworkAgnosticIsGenericValueTuple | .NET 8.0 | .NET 8.0 |  2.873 ns | 0.0873 ns | 0.1195 ns |  2.893 ns |  0.28 |    0.01 |    1 |
-    // | IsGenericValueTuple                  | .NET 8.0 | .NET 8.0 | 10.229 ns | 0.2305 ns | 0.3451 ns | 10.197 ns |  1.00 |    0.05 |    2 |
-    // |                                      |          |          |           |           |           |           |       |         |      |
-    // | FrameworkAgnosticIsGenericValueTuple | .NET 9.0 | .NET 9.0 |  2.272 ns | 0.0879 ns | 0.2535 ns |  2.187 ns |  0.23 |    0.03 |    1 |
-    // | IsGenericValueTuple1                 | .NET 9.0 | .NET 9.0 |  2.515 ns | 0.0789 ns | 0.1157 ns |  2.527 ns |  0.26 |    0.01 |    2 |
-    // | IsGenericValueTuple                  | .NET 9.0 | .NET 9.0 |  9.826 ns | 0.2266 ns | 0.3025 ns |  9.755 ns |  1.00 |    0.04 |    3 |
+    // | Method                               | Job      | Runtime  | Mean      | Error     | StdDev    | Ratio | RatioSD | Rank | Allocated | Alloc Ratio |
+    // |------------------------------------- |--------- |--------- |----------:|----------:|----------:|------:|--------:|-----:|----------:|------------:|     
+    // | FrameworkAgnosticIsGenericValueTuple | .NET 6.0 | .NET 6.0 | 14.286 ns | 0.0677 ns | 0.0634 ns |  0.95 |    0.01 |    1 |         - |          NA |     
+    // | IsGenericValueTupleString            | .NET 6.0 | .NET 6.0 | 15.040 ns | 0.1792 ns | 0.1588 ns |  1.00 |    0.01 |    2 |         - |          NA |     
+    // | IsGenericValueTupleReflection        | .NET 6.0 | .NET 6.0 | 21.481 ns | 0.2897 ns | 0.2710 ns |  1.43 |    0.02 |    3 |         - |          NA |     
+    // |                                      |          |          |           |           |           |       |         |      |           |             |     
+    // | FrameworkAgnosticIsGenericValueTuple | .NET 7.0 | .NET 7.0 |  7.174 ns | 0.0470 ns | 0.0439 ns |  1.00 |    0.01 |    1 |         - |          NA |     
+    // | IsGenericValueTupleString            | .NET 7.0 | .NET 7.0 |  7.187 ns | 0.0458 ns | 0.0406 ns |  1.00 |    0.01 |    1 |         - |          NA |     
+    // | IsGenericValueTupleReflection        | .NET 7.0 | .NET 7.0 | 10.357 ns | 0.2395 ns | 0.3197 ns |  1.44 |    0.04 |    2 |         - |          NA |
+    // |                                      |          |          |           |           |           |       |         |      |           |             |     
+    // | FrameworkAgnosticIsGenericValueTuple | .NET 8.0 | .NET 8.0 |  8.670 ns | 0.0661 ns | 0.0552 ns |  0.98 |    0.01 |    1 |         - |          NA |     
+    // | IsGenericValueTupleString            | .NET 8.0 | .NET 8.0 |  8.846 ns | 0.0383 ns | 0.0358 ns |  1.00 |    0.01 |    1 |         - |          NA |     
+    // | IsGenericValueTupleReflection        | .NET 8.0 | .NET 8.0 |  8.857 ns | 0.0469 ns | 0.0366 ns |  1.00 |    0.01 |    1 |         - |          NA |     
+    // |                                      |          |          |           |           |           |       |         |      |           |             |     
+    // | IsGenericValueTupleString            | .NET 9.0 | .NET 9.0 |  8.607 ns | 0.0107 ns | 0.0095 ns |  1.00 |    0.00 |    1 |         - |          NA |     
+    // | IsGenericValueTupleReflection        | .NET 9.0 | .NET 9.0 |  8.750 ns | 0.1841 ns | 0.1632 ns |  1.02 |    0.02 |    1 |         - |          NA |     
+    // | FrameworkAgnosticIsGenericValueTuple | .NET 9.0 | .NET 9.0 |  8.929 ns | 0.0311 ns | 0.0275 ns |  1.04 |    0.00 |    1 |         - |          NA |
     private readonly Type type = typeof((string Name, int Age, (bool IsTrue, double Score), float? Payment));
 
     [Benchmark(Baseline = true)]
-    public bool IsGenericValueTuple() => string.Equals(type.Namespace, Constants.SystemNamespaceName, StringComparison.Ordinal) && type.Name.StartsWith(Constants.GenericValueTupleName, StringComparison.Ordinal);
-
+    public bool IsGenericValueTupleString() => string.Equals(type.Namespace, Constants.SystemNamespaceName, StringComparison.Ordinal) && type.Name.StartsWith(Constants.GenericValueTupleName, StringComparison.Ordinal);
+    
     [Benchmark]
-    public bool IsGenericValueTuple1() => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTuple<>);
+    public bool IsGenericValueTupleReflection() => type.IsGenericType && type.IsAssignableTo(typeof(ITuple)) && type.IsValueType;
     
     [Benchmark]
     public bool FrameworkAgnosticIsGenericValueTuple()
     {
 #if NET8_0_OR_GREATER
-        return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ValueTuple<>);
+        return type.IsGenericType && type.IsAssignableTo(typeof(ITuple)) && type.IsValueType;
 #else
         return string.Equals(type.Namespace, Constants.SystemNamespaceName, StringComparison.Ordinal) && type.Name.StartsWith(Constants.GenericValueTupleName, StringComparison.Ordinal);
 #endif

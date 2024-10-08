@@ -1,10 +1,9 @@
-﻿namespace JanHafner.TypeNameR.Experimental.Helper;
+﻿using System.Runtime.CompilerServices;
+
+namespace JanHafner.TypeNameR.Experimental.Helper;
 
 internal static class TypeHelper
 {
-    public static ReadOnlySpan<char> RemoveGenericParametersArity(this string typeName)
-        => typeName.AsSpan(0, typeName.IndexOf(Constants.GraveAccent));
-
     public static bool DetermineActualGenerics(this Type type, ref Type[]? masterGenericTypes, out int actualStartGenericParameterIndex, out int actualGenericParametersCount)
     {
         if (!type.IsGenericType)
@@ -26,7 +25,7 @@ internal static class TypeHelper
         // This would produce the following output: Outer<T, K>+Inner<T, K>+Actual<T, K, M>
         // To circumvent this we resolve the generic parameters of the declaring type and skip these.
         // Specialty: Only the most inner (e.g. Actual<int>) holds the real parameters (string, bool, int)
-        // In order to correctly lookup these when processing a nested type it is necessary to return these (in masterGenericTypes)
+        // In order to correctly look up these when processing a nested type it is necessary to return these (in masterGenericTypes)
         // The output would be if not processed this way: Outer<T, K>+Inner+Actual<int>
         masterGenericTypes ??= typeGenericArguments;
 
@@ -41,6 +40,12 @@ internal static class TypeHelper
         return actualStartGenericParameterIndex < actualGenericParametersCount;
     }
 
-    [Obsolete("Use method")]
-    public static bool IsGenericValueTuple(this Type type) => type.Namespace == "System" && type.Name.StartsWith("ValueTuple`", StringComparison.Ordinal);
+    public static bool IsGenericValueTuple(this Type type)
+    {
+#if NET8_0_OR_GREATER
+        return type.IsGenericType && type.IsAssignableTo(typeof(ITuple)) && type.IsValueType;
+#else
+        return string.Equals(type.Namespace, Constants.SystemNamespaceName, StringComparison.Ordinal) && type.Name.StartsWith(Constants.GenericValueTupleName, StringComparison.Ordinal);
+#endif
+    }
 }
