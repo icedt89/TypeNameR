@@ -79,7 +79,7 @@ internal static class AppendHelper
 
     public static void AppendParamsWithEndingSpace(this StringBuilder stringBuilder)
         => stringBuilder.Append(Constants.ParamsWithEndingSpace);
-    
+
     public static void AppendEqualsDefaultWithLeadingSpace(this StringBuilder stringBuilder)
         => stringBuilder.Append(Constants.EqualsDefaultWithLeadingSpace);
 

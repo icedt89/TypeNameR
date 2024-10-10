@@ -54,12 +54,10 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
         var sequencePoints = methodDebugInformation.GetSequencePoints();
 
         var bestSequencePoint = FindBestSequencePoint(ilOffset, sequencePoints);
-        if (!bestSequencePoint.HasValue)
-        {
-            return default;
-        }
 
-        return CreateStackFrameMetadata(metadataReader, bestSequencePoint.Value);
+        return !bestSequencePoint.HasValue
+            ? default
+            : CreateStackFrameMetadata(metadataReader, bestSequencePoint.Value);
     }
 
     // TODO: ref sequencePoint (because it is (maybe large) struct)?

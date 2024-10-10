@@ -13,9 +13,9 @@ namespace JanHafner.TypeNameR.Experimental;
 /// <inheritdoc />
 public partial class TypeNameR
 {
-    private void ProcessGenerics(StringBuilder stringBuilder, Type[] genericTypes, NullabilityInfo[]? genericTypesNullability, int startGenericParameterIndex, int genericParametersCount, NameRControlFlags nameRControlFlags)
+    private void ProcessGenerics(StringBuilder stringBuilder, ReadOnlySpan<Type> genericTypes, NullabilityInfo[]? genericTypesNullability, NameRControlFlags nameRControlFlags)
     {
-        for (var genericParameterIndex = startGenericParameterIndex; genericParameterIndex < genericParametersCount; genericParameterIndex++)
+        for (var genericParameterIndex = 0; genericParameterIndex < genericTypes.Length; genericParameterIndex++)
         {
             NullabilityInfo? genericTypeNullabilityInfo = null;
             if (genericTypesNullability is not null && genericParameterIndex < genericTypesNullability.Length)
@@ -25,7 +25,7 @@ public partial class TypeNameR
 
             ProcessTypeCore(stringBuilder, genericTypes[genericParameterIndex], false, genericTypeNullabilityInfo, null, nameRControlFlags);
 
-            if (genericParameterIndex < genericParametersCount - 1)
+            if (genericParameterIndex < genericTypes.Length - 1)
             {
                 stringBuilder.AppendCommaWithEndingSpace();
             }

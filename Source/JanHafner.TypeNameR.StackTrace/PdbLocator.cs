@@ -87,12 +87,7 @@ public sealed class PdbLocator : IPdbLocator
     }
 
     private FileSystemStream? OpenIfExists(string pdbLocation)
-    {
-        if (fileSystem.File.Exists(pdbLocation))
-        {
-            return fileSystem.FileStream.New(pdbLocation, FileMode.Open, FileAccess.Read, FileShare.Read);
-        }
-
-        return null;
-    }
+        => fileSystem.File.Exists(pdbLocation)
+            ? fileSystem.FileStream.New(pdbLocation, FileMode.Open, FileAccess.Read, FileShare.Read)
+            : null;
 }

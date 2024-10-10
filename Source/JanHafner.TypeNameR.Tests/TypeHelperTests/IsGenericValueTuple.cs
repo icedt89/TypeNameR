@@ -19,7 +19,7 @@ public sealed class IsGenericValueTuple
         // Assert
         isValueTuple.Should().BeTrue();
     }
-    
+
     [Fact]
     public void IsTrueForExplicitGenericValueTupleT2()
     {
@@ -33,7 +33,7 @@ public sealed class IsGenericValueTuple
         // Assert
         isValueTuple.Should().BeTrue();
     }
-    
+
     [Fact]
     public void IsTrueForExplicitGenericValueTupleT3()
     {
@@ -47,7 +47,7 @@ public sealed class IsGenericValueTuple
         // Assert
         isValueTuple.Should().BeTrue();
     }
-    
+
     [Fact]
     public void IsTrueForImplicitGenericValueTupleT2()
     {
@@ -61,7 +61,7 @@ public sealed class IsGenericValueTuple
         // Assert
         isValueTuple.Should().BeTrue();
     }
-    
+
     [Fact]
     public void IsTrueForImplicitGenericValueTupleT3()
     {

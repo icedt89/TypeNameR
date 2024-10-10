@@ -37,10 +37,10 @@ public class IsGenericValueTupleBenchmarks
 
     [Benchmark(Baseline = true)]
     public bool IsGenericValueTupleString() => string.Equals(type.Namespace, Constants.SystemNamespaceName, StringComparison.Ordinal) && type.Name.StartsWith(Constants.GenericValueTupleName, StringComparison.Ordinal);
-    
+
     [Benchmark]
     public bool IsGenericValueTupleReflection() => type.IsGenericType && type.IsAssignableTo(typeof(ITuple)) && type.IsValueType;
-    
+
     [Benchmark]
     public bool FrameworkAgnosticIsGenericValueTuple()
     {

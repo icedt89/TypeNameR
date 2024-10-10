@@ -4,14 +4,11 @@ namespace JanHafner.TypeNameR.Helper;
 
 internal static class TypeHelper
 {
-    public static bool DetermineActualGenerics(this Type type, ref Type[]? masterGenericTypes, out int actualStartGenericParameterIndex, out int actualGenericParametersCount)
+    public static ReadOnlySpan<Type> DetermineActualGenerics(this Type type, scoped ref Type[]? masterGenericTypes)
     {
         if (!type.IsGenericType)
         {
-            actualStartGenericParameterIndex = -1;
-            actualGenericParametersCount = -1;
-
-            return false;
+            return ReadOnlySpan<Type>.Empty;
         }
 
         var typeGenericArguments = type.GetGenericArguments();
@@ -29,15 +26,17 @@ internal static class TypeHelper
         // The output would be if not processed this way: Outer<T, K>+Inner+Actual<int>
         masterGenericTypes ??= typeGenericArguments;
 
-        actualStartGenericParameterIndex = 0;
-        actualGenericParametersCount = typeGenericArguments.Length;
+        var actualStartGenericParameterIndex = 0;
+        var actualGenericParametersCount = typeGenericArguments.Length;
 
         if (type.DeclaringType is not null && type.DeclaringType.IsGenericType)
         {
             actualStartGenericParameterIndex = type.DeclaringType.GetGenericArguments().Length;
         }
 
-        return actualStartGenericParameterIndex < actualGenericParametersCount;
+        return actualStartGenericParameterIndex < actualGenericParametersCount
+            ? new ReadOnlySpan<Type>(masterGenericTypes, actualStartGenericParameterIndex, actualGenericParametersCount - actualStartGenericParameterIndex)
+            : ReadOnlySpan<Type>.Empty;
     }
 
     public static bool IsGenericValueTuple(this Type type)

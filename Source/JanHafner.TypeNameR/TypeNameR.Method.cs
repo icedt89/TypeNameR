@@ -88,7 +88,7 @@ public partial class TypeNameR
 
             var genericArguments = method.GetGenericArguments();
 
-            ProcessGenerics(stringBuilder, genericArguments, null, 0, genericArguments.Length, nameRControlFlags);
+            ProcessGenerics(stringBuilder, genericArguments, null, nameRControlFlags);
 
             stringBuilder.AppendGreaterThanSign();
         }

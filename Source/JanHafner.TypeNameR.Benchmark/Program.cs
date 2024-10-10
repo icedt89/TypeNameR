@@ -32,7 +32,7 @@ public static class Program
         // BenchmarkRunner.Run<EnumHasFlagBenchmarks>();
         // BenchmarkRunner.Run<ReadOnlyRefStructCopy>();
         // BenchmarkRunner.Run<GetFrameBenchmarks>();
-        BenchmarkRunner.Run<IsGenericValueTupleBenchmarks>();
+        // BenchmarkRunner.Run<IsGenericValueTupleBenchmarks>();
         // BenchmarkRunner.Run<SliceBenchmarks>();
         // BenchmarkRunner.Run<HashSetArrayEnumerationBenchmarks>();
         // BenchmarkRunner.Run<MethodGenericsBenchmarks>();

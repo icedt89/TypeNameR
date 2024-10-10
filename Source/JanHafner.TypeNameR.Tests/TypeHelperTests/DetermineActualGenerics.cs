@@ -15,13 +15,11 @@ public sealed class DetermineActualGenerics
         var type = typeof(TestClass);
 
         // Act
-        var hasGenericsDetermined = type.DetermineActualGenerics(ref masterGenericTypes, out var actualStartGenericParameterIndex, out var actualGenericParametersCount);
+        var actualGenericTypes = type.DetermineActualGenerics(ref masterGenericTypes);
 
         // Assert
-        hasGenericsDetermined.Should().BeFalse();
+        actualGenericTypes.ToArray().Should().BeEmpty();
         masterGenericTypes.Should().BeNull();
-        actualStartGenericParameterIndex.Should().Be(-1);
-        actualGenericParametersCount.Should().Be(-1);
     }
 
     [Fact]
@@ -32,13 +30,11 @@ public sealed class DetermineActualGenerics
         var type = typeof(TestClass.InnerTestClass.MostInnerTestClass);
 
         // Act
-        var hasGenericsDetermined = type.DetermineActualGenerics(ref masterGenericTypes, out var actualStartGenericParameterIndex, out var actualGenericParametersCount);
+        var actualGenericTypes = type.DetermineActualGenerics(ref masterGenericTypes);
 
         // Assert
-        hasGenericsDetermined.Should().BeFalse();
+        actualGenericTypes.ToArray().Should().BeEmpty();
         masterGenericTypes.Should().BeNull();
-        actualStartGenericParameterIndex.Should().Be(-1);
-        actualGenericParametersCount.Should().Be(-1);
     }
 
     [Fact]
@@ -49,16 +45,14 @@ public sealed class DetermineActualGenerics
         var type = typeof(GenericTestClass<>);
 
         // Act
-        var hasGenericsDetermined = type.DetermineActualGenerics(ref masterGenericTypes, out var actualStartGenericParameterIndex, out var actualGenericParametersCount);
+        var actualGenericTypes = type.DetermineActualGenerics(ref masterGenericTypes);
 
         // Assert
-        hasGenericsDetermined.Should().BeTrue();
-        
         masterGenericTypes.Should().NotBeNullOrEmpty().And.HaveCount(1);
         masterGenericTypes![0].Name.Should().Be("T");
-        
-        actualStartGenericParameterIndex.Should().Be(0);
-        actualGenericParametersCount.Should().Be(1);
+
+        actualGenericTypes.ToArray().Should().NotBeEmpty().And.HaveCount(1);
+        actualGenericTypes[0].Name.Should().Be("T");
     }
 
     [Fact]
@@ -69,16 +63,13 @@ public sealed class DetermineActualGenerics
         var type = typeof(GenericTestClass<>.InnerNonGenericTestClass);
 
         // Act
-        var hasGenericsDetermined = type.DetermineActualGenerics(ref masterGenericTypes, out var actualStartGenericParameterIndex, out var actualGenericParametersCount);
+        var actualGenericTypes = type.DetermineActualGenerics(ref masterGenericTypes);
 
         // Assert
-        hasGenericsDetermined.Should().BeFalse();
-        
         masterGenericTypes.Should().NotBeNullOrEmpty().And.HaveCount(1);
         masterGenericTypes![0].Name.Should().Be("T");
-        
-        actualStartGenericParameterIndex.Should().Be(1);
-        actualGenericParametersCount.Should().Be(1);
+
+        actualGenericTypes.ToArray().Should().BeEmpty();
     }
 
     [Fact]
@@ -89,20 +80,19 @@ public sealed class DetermineActualGenerics
         var type = typeof(GenericTestClass<>.InnerNonGenericTestClass.MostInnerGenericTestClass<,>);
 
         // Act
-        var hasGenericsDetermined = type.DetermineActualGenerics(ref masterGenericTypes, out var actualStartGenericParameterIndex, out var actualGenericParametersCount);
+        var actualGenericTypes = type.DetermineActualGenerics(ref masterGenericTypes);
 
         // Assert
-        hasGenericsDetermined.Should().BeTrue();
-        
         masterGenericTypes.Should().NotBeNullOrEmpty().And.HaveCount(3);
         masterGenericTypes![0].Name.Should().Be("T");
         masterGenericTypes[1].Name.Should().Be("R");
         masterGenericTypes[2].Name.Should().Be("M");
-        
-        actualStartGenericParameterIndex.Should().Be(1);
-        actualGenericParametersCount.Should().Be(3);
+
+        actualGenericTypes.ToArray().Should().NotBeEmpty().And.HaveCount(2);
+        actualGenericTypes[0].Name.Should().Be("R");
+        actualGenericTypes[1].Name.Should().Be("M");
     }
-    
+
     [Fact]
     public void ReturnsCorrectGenericsForFlow()
     {
@@ -113,29 +103,26 @@ public sealed class DetermineActualGenerics
         var type3 = type1.DeclaringType!.DeclaringType!;
 
         // Act
-        var hasGenericsDetermined1 = type1.DetermineActualGenerics(ref masterGenericTypes, out var actualStartGenericParameterIndex1, out var actualGenericParametersCount1);
-        var hasGenericsDetermined2 = type2.DetermineActualGenerics(ref masterGenericTypes, out var actualStartGenericParameterIndex2, out var actualGenericParametersCount2);
-        var hasGenericsDetermined3 = type3.DetermineActualGenerics(ref masterGenericTypes, out var actualStartGenericParameterIndex3, out var actualGenericParametersCount3);
+        var actualGenericTypes1 = type1.DetermineActualGenerics(ref masterGenericTypes);
+        var actualGenericTypes2 = type2.DetermineActualGenerics(ref masterGenericTypes);
+        var actualGenericTypes3 = type3.DetermineActualGenerics(ref masterGenericTypes);
 
         // Assert
         masterGenericTypes.Should().NotBeNullOrEmpty().And.HaveCount(3);
         masterGenericTypes![0].Name.Should().Be("T");
         masterGenericTypes[1].Name.Should().Be("R");
         masterGenericTypes[2].Name.Should().Be("M");
-        
+
         // type1
-        hasGenericsDetermined1.Should().BeTrue();
-        actualStartGenericParameterIndex1.Should().Be(1);
-        actualGenericParametersCount1.Should().Be(3);
-        
+        actualGenericTypes1.ToArray().Should().NotBeEmpty().And.HaveCount(2);
+        actualGenericTypes1[0].Name.Should().Be("R");
+        actualGenericTypes1[1].Name.Should().Be("M");
+
         // type2
-        hasGenericsDetermined2.Should().BeFalse();
-        actualStartGenericParameterIndex2.Should().Be(1);
-        actualGenericParametersCount2.Should().Be(1);
-        
+        actualGenericTypes2.ToArray().Should().BeEmpty();
+
         // type3
-        hasGenericsDetermined3.Should().BeTrue();
-        actualStartGenericParameterIndex3.Should().Be(0);
-        actualGenericParametersCount3.Should().Be(1);
+        actualGenericTypes3.ToArray().Should().NotBeEmpty().And.HaveCount(1);
+        actualGenericTypes3[0].Name.Should().Be("T");
     }
 }

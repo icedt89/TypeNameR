@@ -99,12 +99,10 @@ public sealed partial class TypeNameR : ITypeNameR
         if (!skipTypeAndGenericsAndNullable)
         {
             var isGenericValueTuple = type.IsGenericValueTuple();
-            var startGenericParameterIndex = 0;
-            var genericParametersCount = 0;
-            var hasProcessableGenerics = false;
+            var actualGenericTypes = ReadOnlySpan<Type>.Empty;
             if (nameRControlFlags.HasFlag(NameRControlFlags.IncludeGenericParameters) || isGenericValueTuple)
             {
-                hasProcessableGenerics = type.DetermineActualGenerics(ref masterGenericTypes, out startGenericParameterIndex, out genericParametersCount);
+                actualGenericTypes = type.DetermineActualGenerics(ref masterGenericTypes);
             }
 
             // Nested
@@ -121,7 +119,7 @@ public sealed partial class TypeNameR : ITypeNameR
                 stringBuilder.AppendNamespace(type.Namespace);
             }
 
-            if (hasProcessableGenerics && masterGenericTypes is not null)
+            if (!actualGenericTypes.IsEmpty)
             {
                 if (!isGenericValueTuple)
                 {
@@ -129,7 +127,7 @@ public sealed partial class TypeNameR : ITypeNameR
 
                     stringBuilder.AppendLessThanSign();
 
-                    ProcessGenerics(stringBuilder, masterGenericTypes, nullabilityInfo?.GenericTypeArguments, startGenericParameterIndex, genericParametersCount, nameRControlFlags);
+                    ProcessGenerics(stringBuilder, actualGenericTypes, nullabilityInfo?.GenericTypeArguments, nameRControlFlags);
 
                     stringBuilder.AppendGreaterThanSign();
                 }
@@ -137,7 +135,7 @@ public sealed partial class TypeNameR : ITypeNameR
                 {
                     stringBuilder.AppendLeftParenthesis();
 
-                    ProcessGenerics(stringBuilder, masterGenericTypes, nullabilityInfo?.GenericTypeArguments, startGenericParameterIndex, genericParametersCount, nameRControlFlags);
+                    ProcessGenerics(stringBuilder, actualGenericTypes, nullabilityInfo?.GenericTypeArguments, nameRControlFlags);
 
                     stringBuilder.AppendRightParenthesis();
                 }
