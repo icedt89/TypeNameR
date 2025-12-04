@@ -40,16 +40,16 @@ public class EmptyDictionaryTryGetValueBenchmarks
     // | ReadOnly   | .NET 8.0 | .NET 8.0 | 3.1528 ns | 0.0477 ns | 0.0423 ns | 3.1419 ns |  1.66 |    0.04 |    3 |             |         - |          NA |
     // | Immutable  | .NET 8.0 | .NET 8.0 | 4.6509 ns | 0.0818 ns | 0.0683 ns | 4.6475 ns |  2.44 |    0.07 |    4 |             |         - |          NA |
 
-    private IReadOnlyDictionary<Type, string> dictionary;
+    private IReadOnlyDictionary<Type, string>? dictionary;
 
-    private IReadOnlyDictionary<Type, string> emptyDictionary;
+    private IReadOnlyDictionary<Type, string>? emptyDictionary;
 
-    private IReadOnlyDictionary<Type, string> immutableDictionary;
+    private IReadOnlyDictionary<Type, string>? immutableDictionary;
 #if NET8_0_OR_GREATER
     
-    private IReadOnlyDictionary<Type, string> readOnlyDictionary;
+    private IReadOnlyDictionary<Type, string>? readOnlyDictionary;
     
-    private IReadOnlyDictionary<Type, string> frozenDictionary;
+    private IReadOnlyDictionary<Type, string>? frozenDictionary;
 #endif
 
     [GlobalSetup]
@@ -65,13 +65,13 @@ public class EmptyDictionaryTryGetValueBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public bool Dictionary() => dictionary.TryGetValue(typeof(object), out _);
+    public bool Dictionary() => dictionary!.TryGetValue(typeof(object), out _);
 
     [Benchmark]
-    public bool EmptyDictionary() => emptyDictionary.TryGetValue(typeof(object), out _);
+    public bool EmptyDictionary() => emptyDictionary!.TryGetValue(typeof(object), out _);
 
     [Benchmark]
-    public bool Immutable() => immutableDictionary.TryGetValue(typeof(object), out _);
+    public bool Immutable() => immutableDictionary!.TryGetValue(typeof(object), out _);
 
     [Benchmark]
     [Hint(GlobalBenchmarkSettings.UnsupportedMessage)]
@@ -79,7 +79,7 @@ public class EmptyDictionaryTryGetValueBenchmarks
     public bool ReadOnly()
     {
 #if NET8_0_OR_GREATER
-        return readOnlyDictionary.TryGetValue(typeof(object), out _);
+        return readOnlyDictionary!.TryGetValue(typeof(object), out _);
 #else
         return default!;
 #endif
@@ -91,7 +91,7 @@ public class EmptyDictionaryTryGetValueBenchmarks
     public bool Frozen()
     {
 #if NET8_0_OR_GREATER
-        return frozenDictionary.TryGetValue(typeof(object), out _);
+        return frozenDictionary!.TryGetValue(typeof(object), out _);
 #else
         return default!;
 #endif

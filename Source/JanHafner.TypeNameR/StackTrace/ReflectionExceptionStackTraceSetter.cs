@@ -9,8 +9,6 @@ internal static class ReflectionExceptionStackTraceSetter
     private static readonly FieldInfo? StackTraceBackingField = typeof(Exception).GetField(Constants.ExceptionStackTraceBackingFieldName, BindingFlags.Instance | BindingFlags.NonPublic);
 #pragma warning restore S3011 // Reflection should not be used to increase accessibility of classes, methods, or fields
 
-    public static void SetValue(Exception exception, string stackTrace)
-    {
-        StackTraceBackingField.SetValue(exception, stackTrace);
-    }
+    public static void SetValue(Exception exception, string stackTrace) 
+        => StackTraceBackingField?.SetValue(exception, stackTrace);
 }

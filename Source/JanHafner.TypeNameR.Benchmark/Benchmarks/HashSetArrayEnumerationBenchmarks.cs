@@ -34,13 +34,13 @@ public class HashSetArrayEnumerationBenchmarks
     // | FrozenHashSet | .NET 8.0 | .NET 8.0 |  23.6530 ns | 0.5331 ns |  0.4452 ns |   9.58 |    0.66 |    2 |             | 0.0051 |      32 B |          NA |
     // | HashSet       | .NET 8.0 | .NET 8.0 |  34.8794 ns | 0.7863 ns |  2.2306 ns |  13.89 |    1.79 |    3 |             | 0.0063 |      40 B |          NA |
 
-    private string[] array;
+    private string[]? array;
 
-    private IReadOnlySet<string> hashSet;
+    private IReadOnlySet<string>? hashSet;
 
 #if NET8_0_OR_GREATER
     
-    private IReadOnlySet<string> frozenHashSet;
+    private IReadOnlySet<string>? frozenHashSet;
 #endif
 
     [GlobalSetup]
@@ -68,7 +68,7 @@ public class HashSetArrayEnumerationBenchmarks
     public string Array()
     {
         var result = string.Empty;
-        foreach (var item in array)
+        foreach (var item in array!)
         {
             result = item;
         }
@@ -80,7 +80,7 @@ public class HashSetArrayEnumerationBenchmarks
     public string HashSet()
     {
         var result = string.Empty;
-        foreach (var item in hashSet)
+        foreach (var item in hashSet!)
         {
             result = item;
         }
@@ -95,7 +95,7 @@ public class HashSetArrayEnumerationBenchmarks
     {
 #if NET8_0_OR_GREATER
         var result = string.Empty;
-        foreach (var item in frozenHashSet)
+        foreach (var item in frozenHashSet!)
         {
             result = item;
         }

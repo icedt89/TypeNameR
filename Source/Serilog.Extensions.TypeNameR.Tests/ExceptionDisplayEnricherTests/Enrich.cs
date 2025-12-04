@@ -1,6 +1,6 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using FluentAssertions;
+using AwesomeAssertions;
 using JanHafner.TypeNameR;
 using NSubstitute;
 using Serilog.Core;
@@ -21,7 +21,12 @@ public sealed class Enrich
 
     private readonly ExceptionDisplayEnricher exceptionDisplayEnricher;
 
-    private LogEvent logEvent;
+    private LogEvent logEvent = new(
+        DateTimeOffset.Now,
+        LogEventLevel.Error,
+        null,
+        new MessageTemplate(string.Empty, Enumerable.Empty<MessageTemplateToken>()),
+        Array.Empty<LogEventProperty>());
 
     public Enrich()
     {
@@ -43,14 +48,6 @@ public sealed class Enrich
     [Fact]
     public void DoesNotEnrichIfThereIsNoExceptionLogged()
     {
-        // Arrange
-        logEvent = new LogEvent(
-            DateTimeOffset.Now,
-            LogEventLevel.Error,
-            null,
-            new MessageTemplate(string.Empty, Enumerable.Empty<MessageTemplateToken>()),
-            Array.Empty<LogEventProperty>());
-
         // Act
         Call();
 

@@ -76,7 +76,7 @@ public class GetFrameBenchmarks
         ref var methodsToSkip = ref GetMethodsToSkip(stackTrace);
         
         StackFrame? stackFrame = null;
-        for (var index = 0; index < stackFrames.Length; index++)
+        for (var index = 0; index < stackFrames!.Length; index++)
         {
             stackFrame = stackFrames[index + methodsToSkip];
         }

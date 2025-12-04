@@ -20,17 +20,17 @@ namespace JanHafner.TypeNameR.Benchmark.Benchmarks.Dictionary;
 [HintColumn]
 public class DictionaryTryGetValueReferenceAndStructKeyBenchmarks
 {
-    private Type type;
+    private Type? type;
 
-    private IReadOnlyDictionary<Type, string> dictionaryReferenceKey;
+    private IReadOnlyDictionary<Type, string>? dictionaryReferenceKey;
 
-    private IReadOnlyDictionary<Guid, string> dictionaryStructKey;
+    private IReadOnlyDictionary<Guid, string>? dictionaryStructKey;
 
 #if NET8_0_OR_GREATER
     
-    private IReadOnlyDictionary<Type, string> frozenDictionaryReferenceKey;
+    private IReadOnlyDictionary<Type, string>? frozenDictionaryReferenceKey;
     
-    private IReadOnlyDictionary<Guid, string> frozenDictionaryStructKey;
+    private IReadOnlyDictionary<Guid, string>? frozenDictionaryStructKey;
 #endif
 
     [GlobalSetup]
@@ -127,10 +127,10 @@ public class DictionaryTryGetValueReferenceAndStructKeyBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public bool DictionaryReferenceKey() => dictionaryReferenceKey.TryGetValue(type, out var value);
+    public bool DictionaryReferenceKey() => dictionaryReferenceKey!.TryGetValue(type!, out var value);
 
     [Benchmark]
-    public bool DictionaryStructKey() => dictionaryStructKey.TryGetValue(type.GUID, out var value);
+    public bool DictionaryStructKey() => dictionaryStructKey!.TryGetValue(type!.GUID, out var value);
 
     [Benchmark]
     [Hint(GlobalBenchmarkSettings.UnsupportedMessage)]
@@ -138,7 +138,7 @@ public class DictionaryTryGetValueReferenceAndStructKeyBenchmarks
     public bool FrozenReferenceKey()
     {
 #if NET8_0_OR_GREATER
-        return frozenDictionaryReferenceKey.TryGetValue(type, out var value);
+        return frozenDictionaryReferenceKey!.TryGetValue(type!, out var value);
 #else
         return false;
 #endif
@@ -150,7 +150,7 @@ public class DictionaryTryGetValueReferenceAndStructKeyBenchmarks
     public bool FrozenStructKey()
     {
 #if NET8_0_OR_GREATER
-        return frozenDictionaryStructKey.TryGetValue(type.GUID, out var value);
+        return frozenDictionaryStructKey!.TryGetValue(type!.GUID, out var value);
 #else
         return false;
 #endif

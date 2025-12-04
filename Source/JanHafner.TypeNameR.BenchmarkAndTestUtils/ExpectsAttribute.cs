@@ -2,7 +2,7 @@
 
 namespace JanHafner.TypeNameR.BenchmarkAndTestUtils;
 
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.ReturnValue | AttributeTargets.Constructor | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Parameter)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.ReturnValue | AttributeTargets.Constructor | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Parameter | AttributeTargets.ReturnValue)]
 public sealed class ExpectsAttribute : Attribute
 {
     public ExpectsAttribute(string expected)

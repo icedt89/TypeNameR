@@ -43,9 +43,11 @@ public sealed class TypeNameROptions
         }
 #endif
 
-        return predefinedTypeNames.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+        return predefinedTypeNames
 #if NET8_0_OR_GREATER
-            .ToFrozenDictionary()
+            .ToFrozenDictionary(kvp => kvp.Key, kvp => kvp.Value)
+#else
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
 #endif
             ;
     }

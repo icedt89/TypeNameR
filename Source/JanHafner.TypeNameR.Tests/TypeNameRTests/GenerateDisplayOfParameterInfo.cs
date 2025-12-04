@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using AwesomeAssertions;
 using JanHafner.TypeNameR.BenchmarkAndTestUtils;
 using System.Reflection;
 using Xunit;
@@ -214,7 +214,44 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
             generated.Should().NotBeNullOrWhiteSpace();
         }
 
+        [Theory]
+        [InlineData(nameof(TupleMethods.Return))]
+        [InlineData(nameof(TupleMethods.ReturnNullables))]
+        [InlineData(nameof(TupleMethods.ReturnNested))]
+        [InlineData(nameof(TupleMethods.ReturnNestedNullables))]
+        public void GenerateForReturnTupleParameter(string methodName)
+        {
+            // Arrange
+            var typeNameR = GlobalTestSettings.TypeNameR ?? new TypeNameR();
+
+            var method = typeof(TupleMethods).GetMethodOrThrow(methodName);
+            var parameter = method.ReturnParameter;
+
+            var expected = ExpectsAttribute.GetExpectation(parameter);
+
+            // Act
+            var generated = typeNameR.GenerateDisplay(parameter, NameRControlFlags.All);
+
+            // Assert
+            generated.Should().Be(expected);
+        }
+
 #pragma warning disable CS8500
+        private static class TupleMethods
+        {
+            [return: Expects("(string, bool, int, char)")]
+            public static (string, bool, int, char) Return() => throw new NotImplementedException();
+
+            [return: Expects("(string?, bool, int, char?)?")]
+            public static (string?, bool, int, char?)? ReturnNullables() => throw new NotImplementedException();
+
+            [return: Expects("(string, bool, char, (string, string, (string, int)), (byte, uint))")]
+            public static (string, bool, char, (string, string, (string, int)), (byte, uint)) ReturnNested() => throw new NotImplementedException();
+
+            [return: Expects("(string, bool?, char, (string, string?, (string, int)?), (byte, uint?)?)?")]
+            public static (string, bool?, char, (string, string?, (string, int)?), (byte, uint?)?)? ReturnNestedNullables() => throw new NotImplementedException();
+        }
+
         private static unsafe class StringMethods
         {
             public static ref string RefReturnValue() => throw new NotImplementedException();
@@ -224,7 +261,7 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
             public static void Item([Expects("string param1")] string param1) => throw new NotImplementedException();
 
             // 'default' will be replaced with the types default value, here 'null'
-            public static void ItemWithDefault([Expects("string param1 = null")] string param1 = default) => throw new NotImplementedException();
+            public static void ItemWithDefault([Expects("string param1 = null")] string param1 = default!) => throw new NotImplementedException();
 
             public static void ItemWithExplicitDefault([Expects("string param1 = \"param2\"")] string param1 = "param2") => throw new NotImplementedException();
 
@@ -478,9 +515,9 @@ namespace JanHafner.TypeNameR.Tests.TypeNameRTests
             public static void Item([Expects("TestClass param1")] TestClass param1) => throw new NotImplementedException();
 
             // 'default' will be replaced with the types default value, here 'null'
-            public static void ItemWithDefault([Expects("TestClass param1 = null")] TestClass param1 = default) => throw new NotImplementedException();
+            public static void ItemWithDefault([Expects("TestClass param1 = null")] TestClass param1 = default!) => throw new NotImplementedException();
 
-            public static void ItemWithExplicitDefault([Expects("TestClass param1 = null")] TestClass param1 = null) => throw new NotImplementedException();
+            public static void ItemWithExplicitDefault([Expects("TestClass param1 = null")] TestClass param1 = null!) => throw new NotImplementedException();
 
             public static void NullableItem([Expects("TestClass? param1")] TestClass? param1) => throw new NotImplementedException();
 

@@ -89,7 +89,7 @@ public sealed partial class TypeNameR : ITypeNameR
         var nullableUnderlyingType = Nullable.GetUnderlyingType(type);
         if (!skipTypeAndGenericsAndNullable && nullableUnderlyingType is not null)
         {
-            ProcessTypeCore(stringBuilder, nullableUnderlyingType, fullTypeName, null, null, nameRControlFlags);
+            ProcessTypeCore(stringBuilder, nullableUnderlyingType, fullTypeName, nullabilityInfo, null, nameRControlFlags);
 
             stringBuilder.AppendNullableMarker();
 

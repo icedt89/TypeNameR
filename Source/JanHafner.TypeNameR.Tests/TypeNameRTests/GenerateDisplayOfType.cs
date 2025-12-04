@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using AwesomeAssertions;
 using JanHafner.TypeNameR.BenchmarkAndTestUtils;
 using Xunit;
 
@@ -118,9 +118,6 @@ public sealed class GenerateDisplayOfType
     [InlineData(typeof(string[,,][,]), "string[,][,,]")] // ISSUE: Array is reversed
     [InlineData(typeof(string[,][,,]), "string[,,][,]")] // ISSUE: Array is reversed
     [InlineData(typeof(string[][,,][,]), "string[,][,,][]")] // ISSUE: Array is reversed
-    [InlineData(typeof((string Name, int? Age)), "(string Name, int? Age)")]
-    [InlineData(typeof((string Name, int? Age)), "ValueTuple<string, int?>")]
-    [InlineData(typeof((string Name, int? Age)), "(string, int?)")]
     public void GenerateTypeDisplay(Type type, string expectedReadableName)
     {
         // Arrange

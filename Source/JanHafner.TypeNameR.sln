@@ -20,6 +20,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{09D8030F-32D4-4FFF-A119-5462368FB3E0}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Packages.props = Directory.Packages.props
+		global.json = global.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JanHafner.TypeNameR.Experimental", "JanHafner.TypeNameR.Experimental\JanHafner.TypeNameR.Experimental.csproj", "{571B2825-D2E8-4BEB-B36C-C02124942053}"

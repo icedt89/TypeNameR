@@ -17,15 +17,15 @@ namespace JanHafner.TypeNameR.Benchmark.Benchmarks.TypeNameR;
 // [SimpleJob(RuntimeMoniker.Net90)]
 public class DisplayOfStackTraceBenchmarks
 {
-    private Exception catchedException;
+    private Exception? catchedException;
 
-    private ITypeNameR typeNameR;
+    private ITypeNameR? typeNameR;
 
-    private JanHafner.TypeNameR.TypeNameR typeNameRWithStackFrameMetadataProvider;
+    private JanHafner.TypeNameR.TypeNameR? typeNameRWithStackFrameMetadataProvider;
 
-    private System.Diagnostics.StackTrace stackTraceWithSourceInformation;
+    private System.Diagnostics.StackTrace? stackTraceWithSourceInformation;
 
-    private System.Diagnostics.StackTrace stackTraceWithoutSourceInformation;
+    private System.Diagnostics.StackTrace? stackTraceWithoutSourceInformation;
 
     [GlobalSetup]
     public async Task GlobalSetup()
@@ -46,14 +46,14 @@ public class DisplayOfStackTraceBenchmarks
     }
 
     // [Benchmark]
-    public void StackTrace_ToString() => stackTraceWithSourceInformation.ToString();
+    public void StackTrace_ToString() => stackTraceWithSourceInformation!.ToString();
 
     // [Benchmark]
-    public void Demystify() => catchedException.Demystify();
+    public void Demystify() => catchedException!.Demystify();
 
     [Benchmark]
     public void WithSourceInformation()
-        => typeNameR.GenerateDisplay(stackTraceWithSourceInformation, NameRControlFlags.All
+        => typeNameR!.GenerateDisplay(stackTraceWithSourceInformation!, NameRControlFlags.All
                                                                             & ~NameRControlFlags.IncludeHiddenStackFrames
                                                                             & ~NameRControlFlags.IncludeAccessModifier
                                                                             & ~NameRControlFlags.IncludeStaticModifier
@@ -61,7 +61,7 @@ public class DisplayOfStackTraceBenchmarks
 
     // [Benchmark]
     public void WithoutSourceInformation()
-        => typeNameR.GenerateDisplay(stackTraceWithoutSourceInformation, NameRControlFlags.All
+        => typeNameR!.GenerateDisplay(stackTraceWithoutSourceInformation!, NameRControlFlags.All
                                                                                & ~NameRControlFlags.IncludeHiddenStackFrames
                                                                                & ~NameRControlFlags.IncludeAccessModifier
                                                                                & ~NameRControlFlags.IncludeStaticModifier
@@ -69,7 +69,7 @@ public class DisplayOfStackTraceBenchmarks
 
     // [Benchmark]
     public void WithoutSourceInformationUsingSFMP()
-        => typeNameRWithStackFrameMetadataProvider.GenerateDisplay(stackTraceWithoutSourceInformation, NameRControlFlags.All
+        => typeNameRWithStackFrameMetadataProvider!.GenerateDisplay(stackTraceWithoutSourceInformation!, NameRControlFlags.All
             & ~NameRControlFlags.IncludeHiddenStackFrames
             & ~NameRControlFlags.IncludeAccessModifier
             & ~NameRControlFlags.IncludeStaticModifier

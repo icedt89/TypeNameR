@@ -40,7 +40,7 @@ internal sealed class HintColumn : IColumn
             {
                 fallbackHintAttribute = hintAttribute;
             }
-            else if (hintAttribute.RuntimeMoniker == benchmarkCase.Job.Environment.Runtime.RuntimeMoniker)
+            else if (hintAttribute.RuntimeMoniker == benchmarkCase.Job.Environment.Runtime?.RuntimeMoniker)
             {
                 return hintAttribute.Hint;
             }

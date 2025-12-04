@@ -27,7 +27,7 @@ public class StringBuilderAppendBenchmarks
     // | AppendString       | .NET 8.0 | .NET 8.0 | 232.2 ns |  5.87 ns | 16.94 ns | 226.1 ns |  1.00 |    0.00 | 0.4268 | 0.0043 |   2.62 KB |        1.00 |
     // | AppendReadOnlySpan | .NET 8.0 | .NET 8.0 | 246.4 ns |  8.24 ns | 23.52 ns | 243.1 ns |  1.07 |    0.12 | 0.4268 | 0.0043 |   2.62 KB |        1.00 |
 
-    private string @string;
+    private string? @string;
 
     [GlobalSetup]
     public void GlobalSetup()

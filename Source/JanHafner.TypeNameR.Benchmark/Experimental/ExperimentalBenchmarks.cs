@@ -17,7 +17,8 @@ namespace JanHafner.TypeNameR.Benchmark.Experimental;
 [SimpleJob(RuntimeMoniker.Net60)]
 [SimpleJob(RuntimeMoniker.Net70)]
 [SimpleJob(RuntimeMoniker.Net80)]
-// [SimpleJob(RuntimeMoniker.Net90)]
+[SimpleJob(RuntimeMoniker.Net90)]
+[SimpleJob(RuntimeMoniker.Net10_0)]
 public class ExperimentalBenchmarks
 {
     // | Method       | Job      | Runtime  | Mean     | Error    | StdDev   | Median   | Ratio | RatioSD | Rank | Gen0   | Gen1   | Allocated | Alloc Ratio |   
@@ -30,11 +31,15 @@ public class ExperimentalBenchmarks
     // |              |          |          |          |          |          |          |       |         |      |        |        |           |             |   
     // | Default      | .NET 8.0 | .NET 8.0 | 25.65 us | 0.988 us | 2.819 us | 24.74 us |  1.01 |    0.15 |    1 | 3.2959 | 0.0610 |  20.23 KB |        1.00 |   
     // | Experimental | .NET 8.0 | .NET 8.0 | 28.10 us | 0.638 us | 1.790 us | 28.50 us |  1.11 |    0.13 |    2 | 3.2959 |      - |  20.42 KB |        1.01 |
-    private Exception catchedException;
+    private Exception? catchedException;
 
-    private ActualTypeNameR actualTypeNameR;
+    private readonly Type type =
+        typeof(GenericTestStruct<int>.InnerGenericTestStruct<bool[]>.MoreInnerGenericTestStruct<string, char>.MoreMoreInnerGenericTestStruct.
+            MostInnerGenericTestStruct<uint>);
 
-    private ExperimentalTypeNameR experimentalTypeNameR;
+    private ActualTypeNameR? actualTypeNameR;
+
+    private ExperimentalTypeNameR? experimentalTypeNameR;
 
     [GlobalSetup]
     public async Task GlobalSetup()
@@ -52,6 +57,14 @@ public class ExperimentalBenchmarks
         experimentalTypeNameR = new ExperimentalTypeNameR();
     }
 
+    [Benchmark(Baseline = true)]
+    public string Default()
+        => actualTypeNameR!.GenerateDisplay(type, fullTypeName: true, JanHafner.TypeNameR.NameRControlFlags.All);
+
+    [Benchmark]
+    public string Experimental()
+        => experimentalTypeNameR!.GenerateDisplay(type, fullTypeName: true, JanHafner.TypeNameR.Experimental.NameRControlFlags.All);
+
     // [Benchmark(Baseline = true)]
     // public string Default()
     //     => actualTypeNameR.GenerateDisplay(
@@ -66,15 +79,15 @@ public class ExperimentalBenchmarks
     //         JanHafner.TypeNameR.Experimental.NameRControlFlags.All
     //         | JanHafner.TypeNameR.Experimental.NameRControlFlags.DontEliminateRecursiveStackFrames);
 
-    [Benchmark(Baseline = true)]
-    public string Default()
-        => actualTypeNameR.GenerateDisplay(
-            catchedException,
-            NameRControlFlags.All);
-
-    [Benchmark]
-    public string Experimental()
-        => experimentalTypeNameR.GenerateDisplay(
-            catchedException,
-            JanHafner.TypeNameR.Experimental.NameRControlFlags.All);
+    // [Benchmark(Baseline = true)]
+    // public string Default()
+    //     => actualTypeNameR.GenerateDisplay(
+    //         catchedException,
+    //         NameRControlFlags.All);
+    //
+    // [Benchmark]
+    // public string Experimental()
+    //     => experimentalTypeNameR.GenerateDisplay(
+    //         catchedException,
+    //         JanHafner.TypeNameR.Experimental.NameRControlFlags.All);
 }

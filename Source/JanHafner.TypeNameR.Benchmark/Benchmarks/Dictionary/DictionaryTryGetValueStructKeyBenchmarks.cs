@@ -41,14 +41,14 @@ public class DictionaryTryGetValueStructKeyBenchmarks
 
     private Guid typeGuid;
 
-    private IReadOnlyDictionary<Guid, string> dictionary;
+    private IReadOnlyDictionary<Guid, string>? dictionary;
 
-    private IReadOnlyDictionary<Guid, string> readOnlyDictionary;
+    private IReadOnlyDictionary<Guid, string>? readOnlyDictionary;
 
-    private IReadOnlyDictionary<Guid, string> immutableDictionary;
+    private IReadOnlyDictionary<Guid, string>? immutableDictionary;
 #if NET8_0_OR_GREATER
     
-    private IReadOnlyDictionary<Guid, string> frozenDictionary;
+    private IReadOnlyDictionary<Guid, string>? frozenDictionary;
 #endif
 
     [GlobalSetup]
@@ -144,13 +144,13 @@ public class DictionaryTryGetValueStructKeyBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public bool Dictionary() => dictionary.TryGetValue(typeGuid, out var value);
+    public bool Dictionary() => dictionary!.TryGetValue(typeGuid, out var value);
 
     [Benchmark]
-    public bool ReadOnly() => readOnlyDictionary.TryGetValue(typeGuid, out var value);
+    public bool ReadOnly() => readOnlyDictionary!.TryGetValue(typeGuid, out var value);
 
     [Benchmark]
-    public bool Immutable() => immutableDictionary.TryGetValue(typeGuid, out var value);
+    public bool Immutable() => immutableDictionary!.TryGetValue(typeGuid, out var value);
 
     [Benchmark]
     [Hint(GlobalBenchmarkSettings.UnsupportedMessage)]
@@ -158,7 +158,7 @@ public class DictionaryTryGetValueStructKeyBenchmarks
     public bool Frozen()
     {
 #if NET8_0_OR_GREATER
-        return frozenDictionary.TryGetValue(typeGuid, out var value);
+        return frozenDictionary!.TryGetValue(typeGuid, out var value);
 #else
         return false;
 #endif

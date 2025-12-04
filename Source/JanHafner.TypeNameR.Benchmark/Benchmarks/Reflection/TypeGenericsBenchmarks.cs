@@ -40,11 +40,11 @@ public class TypeGenericsBenchmarks
     // | ClosedGenericTypeGetGenericArguments | .NET 8.0 | .NET 8.0 | 76.5516 ns | 1.5607 ns |  3.9155 ns | 76.2559 ns | 484.94 |  147.30 |    5 | 0.0076 |      48 B |          NA |
     // | OpenGenericTypeGetGenericArguments   | .NET 8.0 | .NET 8.0 | 90.7158 ns | 3.7177 ns | 10.8448 ns | 86.4668 ns | 589.79 |  183.76 |    6 | 0.0076 |      48 B |          NA |
 
-    private Type nonGenericType;
+    private Type? nonGenericType;
 
-    private Type openGenericType;
+    private Type? openGenericType;
 
-    private Type closedGenericType;
+    private Type? closedGenericType;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -55,20 +55,20 @@ public class TypeGenericsBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public bool NonGenericTypeIsGenericType() => nonGenericType.IsGenericType;
+    public bool NonGenericTypeIsGenericType() => nonGenericType!.IsGenericType;
 
     [Benchmark]
-    public Type[] NonGenericTypeGetGenericArguments() => nonGenericType.GetGenericArguments();
+    public Type[] NonGenericTypeGetGenericArguments() => nonGenericType!.GetGenericArguments();
 
     [Benchmark]
-    public bool OpenGenericTypeIsGenericType() => openGenericType.IsGenericType;
+    public bool OpenGenericTypeIsGenericType() => openGenericType!.IsGenericType;
 
     [Benchmark]
-    public Type[] OpenGenericTypeGetGenericArguments() => openGenericType.GetGenericArguments();
+    public Type[] OpenGenericTypeGetGenericArguments() => openGenericType!.GetGenericArguments();
 
     [Benchmark]
-    public bool ClosedGenericTypeIsGenericType() => closedGenericType.IsGenericType;
+    public bool ClosedGenericTypeIsGenericType() => closedGenericType!.IsGenericType;
 
     [Benchmark]
-    public Type[] ClosedGenericTypeGetGenericArguments() => closedGenericType.GetGenericArguments();
+    public Type[] ClosedGenericTypeGetGenericArguments() => closedGenericType!.GetGenericArguments();
 }

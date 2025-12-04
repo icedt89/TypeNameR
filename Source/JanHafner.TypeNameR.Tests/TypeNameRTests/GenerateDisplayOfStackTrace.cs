@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using AwesomeAssertions;
 using JanHafner.TypeNameR.BenchmarkAndTestUtils;
 using Xunit;
 

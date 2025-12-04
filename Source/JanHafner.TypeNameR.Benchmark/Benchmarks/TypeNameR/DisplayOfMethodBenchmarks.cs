@@ -15,13 +15,13 @@ namespace JanHafner.TypeNameR.Benchmark.Benchmarks.TypeNameR;
 // [SimpleJob(RuntimeMoniker.Net90)]
 public class DisplayOfMethodBenchmarks
 {
-    private MethodInfo nonGenericMethod;
+    private MethodInfo? nonGenericMethod;
 
-    private MethodInfo genericMethod;
+    private MethodInfo? genericMethod;
 
-    private MethodInfo withEveryParameterKeyword;
+    private MethodInfo? withEveryParameterKeyword;
 
-    private ITypeNameR typeNameR;
+    private ITypeNameR? typeNameR;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -36,27 +36,27 @@ public class DisplayOfMethodBenchmarks
     // [Benchmark]
     public void NonGenericMethod_Name()
     {
-        var _ = nonGenericMethod.Name;
+        var _ = nonGenericMethod!.Name;
     }
 
     // [Benchmark]
     public void GenericMethod_Name()
     {
-        var _ = genericMethod.Name;
+        var _ = genericMethod!.Name;
     }
 
     // [Benchmark]
     public void WithEveryParameterKeyword_Name()
     {
-        var _ = withEveryParameterKeyword.Name;
+        var _ = withEveryParameterKeyword!.Name;
     }
 
     // [Benchmark]
-    public void NonGenericMethod() => typeNameR.GenerateDisplay(nonGenericMethod, NameRControlFlags.All);
+    public void NonGenericMethod() => typeNameR!.GenerateDisplay(nonGenericMethod!, NameRControlFlags.All);
 
     // [Benchmark]
-    public void GenericMethod() => typeNameR.GenerateDisplay(genericMethod, NameRControlFlags.All);
+    public void GenericMethod() => typeNameR!.GenerateDisplay(genericMethod!, NameRControlFlags.All);
 
     [Benchmark(Baseline = true)]
-    public void EveryParameterKeyword() => typeNameR.GenerateDisplay(withEveryParameterKeyword, NameRControlFlags.All);
+    public void EveryParameterKeyword() => typeNameR!.GenerateDisplay(withEveryParameterKeyword!, NameRControlFlags.All);
 }

@@ -39,16 +39,16 @@ public class DictionaryTryGetValueReferenceKeyBenchmarks
     // | ReadOnly   | .NET 8.0 | .NET 8.0 | 11.5202 ns | 0.2516 ns | 0.3089 ns | 11.5108 ns |  1.19 |    0.06 |    3 |             |         - |          NA |
     // | Immutable  | .NET 8.0 | .NET 8.0 | 17.9053 ns | 0.3716 ns | 0.4424 ns | 17.7741 ns |  1.85 |    0.09 |    4 |             |         - |          NA |
 
-    private Type type;
+    private Type? type;
 
-    private IReadOnlyDictionary<Type, string> dictionary;
+    private IReadOnlyDictionary<Type, string>? dictionary;
 
-    private IReadOnlyDictionary<Type, string> readOnlyDictionary;
+    private IReadOnlyDictionary<Type, string>? readOnlyDictionary;
 
-    private IReadOnlyDictionary<Type, string> immutableDictionary;
+    private IReadOnlyDictionary<Type, string>? immutableDictionary;
 #if NET8_0_OR_GREATER
     
-    private IReadOnlyDictionary<Type, string> frozenDictionary;
+    private IReadOnlyDictionary<Type, string>? frozenDictionary;
 #endif
 
     [GlobalSetup]
@@ -144,13 +144,13 @@ public class DictionaryTryGetValueReferenceKeyBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public bool Dictionary() => dictionary.TryGetValue(type, out var value);
+    public bool Dictionary() => dictionary!.TryGetValue(type!, out var value);
 
     [Benchmark]
-    public bool ReadOnly() => readOnlyDictionary.TryGetValue(type, out var value);
+    public bool ReadOnly() => readOnlyDictionary!.TryGetValue(type!, out var value);
 
     [Benchmark]
-    public bool Immutable() => immutableDictionary.TryGetValue(type, out var value);
+    public bool Immutable() => immutableDictionary!.TryGetValue(type!, out var value);
 
     [Benchmark]
     [Hint(GlobalBenchmarkSettings.UnsupportedMessage)]
@@ -158,7 +158,7 @@ public class DictionaryTryGetValueReferenceKeyBenchmarks
     public bool Frozen()
     {
 #if NET8_0_OR_GREATER
-        return frozenDictionary.TryGetValue(type, out var value);
+        return frozenDictionary!.TryGetValue(type!, out var value);
 #else
         return false;
 #endif

@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using AwesomeAssertions;
 using JanHafner.TypeNameR.Helper;
 using Xunit;
 #if NET8_0_OR_GREATER
@@ -14,7 +14,6 @@ public sealed class Constructor
     {
         // Arrange
         IReadOnlyDictionary<Type, string>? predefinedTypeNames = null;
-        IReadOnlyList<string>? excludedNamespaces = null;
 
         // Act
         var typeNameROptions = new TypeNameROptions(predefinedTypeNames);
@@ -29,8 +28,7 @@ public sealed class Constructor
     public void InitializesPredefinedTypeNamesToEmptyDictionaryIfEmpty()
     {
         // Arrange
-        IReadOnlyDictionary<Type, string>? predefinedTypeNames = new Dictionary<Type, string>(0);
-        IReadOnlyList<string>? excludedNamespaces = Array.Empty<string>();
+        IReadOnlyDictionary<Type, string> predefinedTypeNames = new Dictionary<Type, string>(0);
 
         // Act
         var typeNameROptions = new TypeNameROptions(predefinedTypeNames);
@@ -45,11 +43,10 @@ public sealed class Constructor
     public void InitializesPredefinedTypeNamesCorrectly()
     {
         // Arrange
-        IReadOnlyDictionary<Type, string>? predefinedTypeNames = new Dictionary<Type, string>(1)
+        IReadOnlyDictionary<Type, string> predefinedTypeNames = new Dictionary<Type, string>(1)
         {
             { typeof(string), "string" },
         };
-        IReadOnlyList<string>? excludedNamespaces = null;
 
         // Act
         var typeNameROptions = new TypeNameROptions(predefinedTypeNames);
@@ -70,11 +67,10 @@ public sealed class Constructor
     public void InitializesPredefinedTypeNamesCorrectlyButReusesFrozenDictionary()
     {
         // Arrange
-        IReadOnlyDictionary<Type, string>? predefinedTypeNames = new Dictionary<Type, string>(1)
+        IReadOnlyDictionary<Type, string> predefinedTypeNames = new Dictionary<Type, string>(1)
         {
             { typeof(string), "string" },
         }.ToFrozenDictionary();
-        IReadOnlyList<string>? excludedNamespaces = null;
         
         // Act
         var typeNameROptions = new TypeNameROptions(predefinedTypeNames);

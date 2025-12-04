@@ -29,9 +29,9 @@ public class SetExceptionStackTraceStringFieldBenchmarks
     // | UnsafeAccessor | .NET 8.0 | .NET 8.0 |  1.7484 ns | 0.0065 ns | 0.0060 ns |  1.7505 ns |  0.06 |    1 |             |         - |          NA |
     // | Reflection     | .NET 8.0 | .NET 8.0 | 29.3968 ns | 0.4328 ns | 0.4049 ns | 29.4945 ns |  1.00 |    2 |             |         - |          NA |
 
-    private Exception exception;
+    private Exception? exception;
 
-    private string stackTrace;
+    private string? stackTrace;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -41,7 +41,7 @@ public class SetExceptionStackTraceStringFieldBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public void Reflection() => ReflectionExceptionStackTraceSetter.SetValue(exception, stackTrace);
+    public void Reflection() => ReflectionExceptionStackTraceSetter.SetValue(exception!, stackTrace!);
 
     [Benchmark]
     [Hint(GlobalBenchmarkSettings.UnsupportedMessage)]
@@ -49,7 +49,7 @@ public class SetExceptionStackTraceStringFieldBenchmarks
     public void UnsafeAccessor()
     {
 #if NET8_0_OR_GREATER
-        UnsafeExceptionStackTraceSetter.SetValue(exception, stackTrace);
+        UnsafeExceptionStackTraceSetter.SetValue(exception!, stackTrace!);
 #endif
     }
 }

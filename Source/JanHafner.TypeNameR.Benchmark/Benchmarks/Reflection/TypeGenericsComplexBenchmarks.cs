@@ -31,11 +31,11 @@ public class TypeGenericsComplexBenchmarks
     // | ClosedGenericType | .NET 8.0 | .NET 8.0 | 73.3851 ns | 1.3112 ns |  1.1624 ns | 73.3901 ns | 102.70 |   41.48 |    2 | 0.0076 |      48 B |          NA |
     // | OpenGenericType   | .NET 8.0 | .NET 8.0 | 82.9507 ns | 1.6923 ns |  1.9489 ns | 82.1881 ns | 125.28 |   44.21 |    3 | 0.0076 |      48 B |          NA |
 
-    private Type closedGenericType;
+    private Type? closedGenericType;
 
-    private Type openGenericType;
+    private Type? openGenericType;
 
-    private Type nonGenericType;
+    private Type? nonGenericType;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -48,7 +48,7 @@ public class TypeGenericsComplexBenchmarks
     [Benchmark(Baseline = true)]
     public Type[] NonGenericType()
     {
-        if (nonGenericType.IsGenericType)
+        if (nonGenericType!.IsGenericType)
         {
             return nonGenericType.GetGenericArguments();
         }
@@ -59,7 +59,7 @@ public class TypeGenericsComplexBenchmarks
     [Benchmark]
     public Type[] ClosedGenericType()
     {
-        if (closedGenericType.IsGenericType)
+        if (closedGenericType!.IsGenericType)
         {
             return closedGenericType.GetGenericArguments();
         }
@@ -70,7 +70,7 @@ public class TypeGenericsComplexBenchmarks
     [Benchmark]
     public Type[] OpenGenericType()
     {
-        if (openGenericType.IsGenericType)
+        if (openGenericType!.IsGenericType)
         {
             return openGenericType.GetGenericArguments();
         }

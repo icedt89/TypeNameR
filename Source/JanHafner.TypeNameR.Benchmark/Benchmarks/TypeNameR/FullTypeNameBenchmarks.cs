@@ -31,15 +31,15 @@ public class FullTypeNameBenchmarks
     // | GenericNonNested    | .NET 8.0 | .NET 8.0 |   234.2 ns |  4.69 ns | 10.58 ns |   232.2 ns |  2.03 |    0.16 |    3 | 0.0916 |     576 B |        1.11 |
     // | GenericNested       | .NET 8.0 | .NET 8.0 | 1,292.4 ns | 25.49 ns | 44.65 ns | 1,284.0 ns | 11.20 |    0.92 |    4 | 0.2651 |    1672 B |        3.22 |
 
-    private Type nonGenericNonNestedType;
+    private Type? nonGenericNonNestedType;
 
-    private Type nonGenericNestedType;
+    private Type? nonGenericNestedType;
 
-    private Type genericNonNestedType;
+    private Type? genericNonNestedType;
 
-    private Type genericNestedType;
+    private Type? genericNestedType;
 
-    private ITypeNameR typeNameR;
+    private ITypeNameR? typeNameR;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -55,14 +55,14 @@ public class FullTypeNameBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public string NonGenericNonNested() => typeNameR.GenerateDisplay(nonGenericNonNestedType, true, NameRControlFlags.All);
+    public string NonGenericNonNested() => typeNameR!.GenerateDisplay(nonGenericNonNestedType!, true, NameRControlFlags.All);
 
     [Benchmark]
-    public string NonGenericNested() => typeNameR.GenerateDisplay(nonGenericNestedType, true, NameRControlFlags.All);
+    public string NonGenericNested() => typeNameR!.GenerateDisplay(nonGenericNestedType!, true, NameRControlFlags.All);
 
     [Benchmark]
-    public string GenericNonNested() => typeNameR.GenerateDisplay(genericNonNestedType, true, NameRControlFlags.All);
+    public string GenericNonNested() => typeNameR!.GenerateDisplay(genericNonNestedType!, true, NameRControlFlags.All);
 
     [Benchmark]
-    public string GenericNested() => typeNameR.GenerateDisplay(genericNestedType, true, NameRControlFlags.All);
+    public string GenericNested() => typeNameR!.GenerateDisplay(genericNestedType!, true, NameRControlFlags.All);
 }

@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+#if !NET8_0_OR_GREATER
 using System.Runtime.Serialization;
+#endif
 
 namespace JanHafner.TypeNameR.Experimental.Exceptions;
 
@@ -23,10 +25,12 @@ public class TypeNameRException : Exception
         : base(message, inner)
     {
     }
+#if !NET8_0_OR_GREATER
 
     protected TypeNameRException(SerializationInfo info,
         StreamingContext context)
         : base(info, context)
     {
     }
+#endif
 }

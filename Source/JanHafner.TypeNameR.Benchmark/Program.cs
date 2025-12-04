@@ -1,5 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
-using JanHafner.TypeNameR.Benchmark.Benchmarks.TypeHelper;
+using JanHafner.TypeNameR.Benchmark.Experimental;
 
 namespace JanHafner.TypeNameR.Benchmark;
 
@@ -14,7 +14,7 @@ public static class Program
         // BenchmarkRunner.Run<StringBuilderAppendStringConstantsBenchmarks>();
         // BenchmarkRunner.Run<StringBuilderAppendCharConstantsBenchmarks>();
         // BenchmarkRunner.Run<StringBuilderInliningAppendBenchmarks>();
-        // BenchmarkRunner.Run<ExperimentalBenchmarks>();
+        BenchmarkRunner.Run<ExperimentalBenchmarks>();
         // BenchmarkRunner.Run<InstancePassingBenchmarks>();
         // BenchmarkRunner.Run<ArrayForEachBenchmarks>();
         // BenchmarkRunner.Run<EmptyDictionaryTryGetValueBenchmarks>();

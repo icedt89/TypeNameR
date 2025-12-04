@@ -35,9 +35,9 @@ public class MethodGenericsBenchmarks
     // | NonGenericMethodGetGenericArguments | .NET 8.0 | .NET 8.0 | 15.649 ns | 0.9913 ns |  2.9228 ns | 14.141 ns |  7.10 |    0.53 |    3 |      - |         - |          NA |
     // | GenericMethodGetGenericArguments    | .NET 8.0 | .NET 8.0 | 94.676 ns | 5.0849 ns | 14.8329 ns | 90.034 ns | 43.00 |    5.27 |    4 | 0.0063 |      40 B |          NA |
 
-    private MethodInfo nonGenericMethod;
+    private MethodInfo? nonGenericMethod;
 
-    private MethodInfo genericMethod;
+    private MethodInfo? genericMethod;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -47,14 +47,14 @@ public class MethodGenericsBenchmarks
     }
 
     [Benchmark(Baseline = true)]
-    public bool NonGenericMethodIsGenericMethod() => nonGenericMethod.IsGenericMethod;
+    public bool NonGenericMethodIsGenericMethod() => nonGenericMethod!.IsGenericMethod;
 
     [Benchmark]
-    public Type[] NonGenericMethodGetGenericArguments() => nonGenericMethod.GetGenericArguments();
+    public Type[] NonGenericMethodGetGenericArguments() => nonGenericMethod!.GetGenericArguments();
 
     [Benchmark]
-    public bool GenericMethodIsGenericMethod() => genericMethod.IsGenericMethod;
+    public bool GenericMethodIsGenericMethod() => genericMethod!.IsGenericMethod;
 
     [Benchmark]
-    public Type[] GenericMethodGetGenericArguments() => genericMethod.GetGenericArguments();
+    public Type[] GenericMethodGetGenericArguments() => genericMethod!.GetGenericArguments();
 }

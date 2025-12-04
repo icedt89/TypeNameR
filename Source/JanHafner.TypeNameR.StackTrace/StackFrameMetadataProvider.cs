@@ -60,7 +60,6 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
             : CreateStackFrameMetadata(metadataReader, bestSequencePoint.Value);
     }
 
-    // TODO: ref sequencePoint (because it is (maybe large) struct)?
     private static StackFrameMetadata CreateStackFrameMetadata(MetadataReader metadataReader, SequencePoint sequencePoint)
     {
         var document = metadataReader.GetDocument(sequencePoint.Document);
@@ -69,7 +68,6 @@ public sealed class StackFrameMetadataProvider : IStackFrameMetadataProvider
         return new StackFrameMetadata(fileName, sequencePoint.StartLine, sequencePoint.StartColumn);
     }
 
-    // TODO: ref sequencePoints (because it is (maybe large) struct)?
     private static SequencePoint? FindBestSequencePoint(int ilOffset, SequencePointCollection sequencePoints)
     {
         SequencePoint? bestSequencePoint = null;

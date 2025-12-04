@@ -15,9 +15,9 @@ namespace JanHafner.TypeNameR.Benchmark.Benchmarks.TypeNameR;
 // [SimpleJob(RuntimeMoniker.Net90)]
 public class DisplayOfExceptionBenchmarks
 {
-    private Exception catchedException;
+    private Exception? catchedException;
 
-    private ITypeNameR typeNameR;
+    private ITypeNameR? typeNameR;
 
     [GlobalSetup]
     public async Task GlobalSetup()
@@ -35,10 +35,10 @@ public class DisplayOfExceptionBenchmarks
     }
 
     // [Benchmark]
-    public string Exception_ToString() => catchedException.ToString();
+    public string Exception_ToString() => catchedException!.ToString();
 
     // [Benchmark]
-    public string Demystify() => catchedException.Demystify().ToString();
+    public string Demystify() => catchedException!.Demystify().ToString();
 
     // Before using foreach:
     // | Method          | Job      | Runtime  | Mean       | Error    | StdDev    | Median     | Rank | Gen0    | Gen1    | Allocated |
@@ -49,6 +49,6 @@ public class DisplayOfExceptionBenchmarks
 
     [Benchmark]
     public string GenerateDisplay()
-        => typeNameR.GenerateDisplay(catchedException, NameRControlFlags.All
+        => typeNameR!.GenerateDisplay(catchedException!, NameRControlFlags.All
                                                        | NameRControlFlags.DontEliminateRecursiveStackFrames);
 }

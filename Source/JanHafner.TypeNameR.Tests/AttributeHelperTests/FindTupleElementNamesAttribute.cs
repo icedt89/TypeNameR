@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using AwesomeAssertions;
 using JanHafner.TypeNameR.Helper;
 using NSubstitute;
 using System.Reflection;
@@ -10,7 +10,7 @@ namespace JanHafner.TypeNameR.Tests.AttributeHelperTests;
 public sealed class FindTupleElementNamesAttribute
 {
     [Fact]
-    public void ReturnsTheStateMachineAttribute()
+    public void ReturnsTheTupleElementNamesAttribute()
     {
         // Arrange
         var tupleElementNamesAttribute = new TupleElementNamesAttribute([]);

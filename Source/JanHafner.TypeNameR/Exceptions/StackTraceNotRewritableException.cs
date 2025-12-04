@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+#if !NET8_0_OR_GREATER
 using System.Runtime.Serialization;
+#endif
 
 namespace JanHafner.TypeNameR.Exceptions;
 
@@ -23,10 +25,12 @@ public class StackTraceNotRewritableException : TypeNameRException
         : base(message, inner)
     {
     }
-
+#if !NET8_0_OR_GREATER
+    
     protected StackTraceNotRewritableException(SerializationInfo info,
                                                StreamingContext context)
         : base(info, context)
     {
     }
+#endif
 }

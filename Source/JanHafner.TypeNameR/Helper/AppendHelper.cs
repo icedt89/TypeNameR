@@ -160,7 +160,7 @@ internal static class AppendHelper
     public static void AppendStackFramePreamble(this StringBuilder stringBuilder)
         => stringBuilder.Append(Constants.Indent + Constants.AtWithEndingSpace);
 
-    public static void AppendStackFrameMetadata(this StringBuilder stringBuilder, in StackFrameMetadata stackFrameMetadata)
+    public static void AppendStackFrameMetadata(this StringBuilder stringBuilder, StackFrameMetadata stackFrameMetadata)
     {
         stringBuilder.Append(Constants.InSourceWithLeadingAndEndingSpace).Append(stackFrameMetadata.FileName);
 

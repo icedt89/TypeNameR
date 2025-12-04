@@ -27,7 +27,7 @@ public class ArrayForEachBenchmarks
     // | ForEachLoopVariable | .NET 8.0 | .NET 8.0 | 78.20 ns | 3.892 ns | 11.352 ns | 77.94 ns |  0.96 |    0.16 |    1 |         - |          NA |
     // | ForIndexer          | .NET 8.0 | .NET 8.0 | 82.21 ns | 2.977 ns |  8.685 ns | 80.83 ns |  1.00 |    0.00 |    2 |         - |          NA |
 
-    private string[] array;
+    private string[]? array;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -40,7 +40,7 @@ public class ArrayForEachBenchmarks
     {
         string? result = null;
         var isNotLast = true;
-        for (var i = 0; i < array.Length; i++)
+        for (var i = 0; i < array!.Length; i++)
         {
             result = array[i];
 
@@ -59,7 +59,7 @@ public class ArrayForEachBenchmarks
         string? result = null;
         var isNotLast = true;
         var i = 0;
-        foreach (var t in array)
+        foreach (var t in array!)
         {
             result = t;
             i += 1;

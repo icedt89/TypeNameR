@@ -29,9 +29,9 @@ public class MethodGenericsComplexBenchmarks
     // | NonGenericMethod | .NET 8.0 | .NET 8.0 |  1.634 ns | 0.0421 ns |  0.0394 ns |  1.620 ns |  1.00 |    0.00 |    1 |      - |         - |          NA |
     // | GenericMethod    | .NET 8.0 | .NET 8.0 | 80.034 ns | 1.3056 ns |  1.2823 ns | 80.163 ns | 48.98 |    1.06 |    2 | 0.0063 |      40 B |          NA |
 
-    private MethodInfo nonGenericMethod;
+    private MethodInfo? nonGenericMethod;
 
-    private MethodInfo genericMethod;
+    private MethodInfo? genericMethod;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -43,7 +43,7 @@ public class MethodGenericsComplexBenchmarks
     [Benchmark(Baseline = true)]
     public Type[] NonGenericMethod()
     {
-        if (nonGenericMethod.IsGenericMethod)
+        if (nonGenericMethod!.IsGenericMethod)
         {
             return nonGenericMethod.GetGenericArguments();
         }
@@ -55,7 +55,7 @@ public class MethodGenericsComplexBenchmarks
     public Type[] GenericMethod()
     {
 
-        if (genericMethod.IsGenericMethod)
+        if (genericMethod!.IsGenericMethod)
         {
             return genericMethod.GetGenericArguments();
         }

@@ -13,7 +13,7 @@ internal static class UnsafeExceptionStackTraceSetter
 
         stackTraceBackingFieldReference = stackTrace;
 #else
-        throw new NotSupportedException("This method needs .net 8 and above to work");
+        throw new NotSupportedException("This method needs at least .net 8 to work");
 #endif
     }
 #if NET8_0_OR_GREATER
